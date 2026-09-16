@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 2 ]]; then
+  echo "Usage: $0 INPUT_VIDEO OUTPUT_WAV" >&2
+  exit 2
+fi
+
+input_video=$1
+output_wav=$2
+mkdir -p "$(dirname "$output_wav")"
+ffmpeg -hide_banner -loglevel error -y -i "$input_video" \
+  -vn -ac 1 -ar 16000 -c:a pcm_s16le "$output_wav"
+printf 'Wrote %s\n' "$output_wav"
+

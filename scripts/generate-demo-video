@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 1 ]]; then
+  echo "Usage: $0 OUTPUT_MP4" >&2
+  exit 2
+fi
+
+output=$1
+mkdir -p "$(dirname "$output")"
+
+ffmpeg -hide_banner -loglevel error -y \
+  -f lavfi -i "testsrc2=size=1280x720:rate=25:duration=26" \
+  -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=26" \
+  -vf "drawbox=x=350:y=260:w=580:h=180:color=white@0.88:t=fill,drawbox=x=430:y=315:w=420:h=42:color=0x2563eb@1:t=fill,drawbox=x=500:y=375:w=280:h=24:color=0x94a3b8@1:t=fill" \
+  -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "$output"
+printf 'Wrote %s\n' "$output"

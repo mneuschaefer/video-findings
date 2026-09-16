@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+missing=0
+for command_name in python3 ffmpeg ffprobe; do
+  if command -v "$command_name" >/dev/null 2>&1; then
+    printf 'ok      %-10s %s\n' "$command_name" "$(command -v "$command_name")"
+  else
+    printf 'missing %-10s\n' "$command_name"
+    missing=1
+  fi
+done
+
+python3 - <<'PY'
+import sys
+if sys.version_info < (3, 10):
+    raise SystemExit("Python 3.10 or newer is required")
+print(f"ok      python     {sys.version.split()[0]}")
+PY
+
+if [[ "$missing" -ne 0 ]]; then
+  printf '\nInstall the missing tools and run this check again.\n' >&2
+  exit 1
+fi
+
+printf '\nEnvironment is ready.\n'
+

@@ -1,0 +1,51 @@
+import importlib.util
+import tempfile
+import unittest
+from pathlib import Path
+
+
+MODULE_PATH = Path(__file__).parents[1] / "src" / "review_to_issues.py"
+SPEC = importlib.util.spec_from_file_location("review_to_issues", MODULE_PATH)
+MODULE = importlib.util.module_from_spec(SPEC)
+assert SPEC.loader
+import sys
+sys.modules[SPEC.name] = MODULE
+SPEC.loader.exec_module(MODULE)
+
+
+class PipelineTests(unittest.TestCase):
+    def test_parses_vtt_and_strips_tags(self):
+        content = "WEBVTT\n\n00:00:01.000 --> 00:00:02.500\n<b>No response</b>\n"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.vtt"
+            path.write_text(content, encoding="utf-8")
+            cues = MODULE.parse_transcript(path)
+        self.assertEqual(len(cues), 1)
+        self.assertEqual(cues[0].text, "No response")
+        self.assertEqual(cues[0].start, 1.0)
+
+    def test_parses_srt_numbered_blocks(self):
+        content = "1\n00:00:03,000 --> 00:00:04,500\nNothing happens.\n"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.srt"
+            path.write_text(content, encoding="utf-8")
+            cues = MODULE.parse_transcript(path)
+        self.assertEqual(cues[0].end, 4.5)
+
+    def test_demo_has_two_groups_and_merges_repeat(self):
+        transcript = Path(__file__).parents[1] / "examples" / "sample-transcript.vtt"
+        candidates = MODULE.detect_candidates(MODULE.parse_transcript(transcript))
+        self.assertEqual(len(candidates), 2)
+        self.assertEqual(len(candidates[0].source_ranges), 2)
+        self.assertEqual(len(candidates[0].windows), 2)
+        self.assertEqual(candidates[0].confidence, "High")
+        self.assertEqual(candidates[1].confidence, "Medium")
+
+    def test_padding_never_creates_negative_start(self):
+        cues = [MODULE.Cue(0.25, 1.0, "Nothing happens")]
+        candidate = MODULE.detect_candidates(cues, padding=2.0)[0]
+        self.assertEqual(candidate.windows[0]["start"], 0.0)
+
+
+if __name__ == "__main__":
+    unittest.main()

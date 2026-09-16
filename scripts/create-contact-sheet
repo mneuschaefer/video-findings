@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 2 ]]; then
+  echo "Usage: $0 IMAGE_DIRECTORY OUTPUT_JPG" >&2
+  exit 2
+fi
+
+image_dir=$1
+output_jpg=$2
+mkdir -p "$(dirname "$output_jpg")"
+image_count=$(find "$image_dir" -maxdepth 1 -type f -iname '*.jpg' | wc -l | tr -d ' ')
+if [[ "$image_count" -eq 0 ]]; then
+  echo "No JPG images found in $image_dir" >&2
+  exit 1
+fi
+rows=$(( (image_count + 2) / 3 ))
+ffmpeg -hide_banner -loglevel error -y -pattern_type glob \
+  -i "$image_dir/*.jpg" \
+  -vf "scale=640:-1,tile=3x${rows}:padding=8:margin=8:color=white" \
+  -frames:v 1 "$output_jpg"
+printf 'Wrote %s\n' "$output_jpg"

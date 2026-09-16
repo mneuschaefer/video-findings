@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+input/*
+!input/.gitkeep
+output/*
+!output/.gitkeep
+examples/generated/
+

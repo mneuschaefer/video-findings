@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 5 ]]; then
+  echo "Usage: $0 VIDEO START_SECONDS END_SECONDS OUTPUT_DIR SLUG" >&2
+  exit 2
+fi
+
+video=$1
+start=$2
+end=$3
+output_dir=$4
+slug=$5
+mkdir -p "$output_dir"
+
+mid=$(awk -v start="$start" -v end="$end" 'BEGIN { printf "%.3f", (start + end) / 2 }')
+for item in "start:$start" "middle:$mid" "end:$end"; do
+  label=${item%%:*}
+  timestamp=${item#*:}
+  ffmpeg -hide_banner -loglevel error -y -ss "$timestamp" -i "$video" \
+    -frames:v 1 -q:v 2 "$output_dir/${slug}-${label}.jpg"
+done
+
