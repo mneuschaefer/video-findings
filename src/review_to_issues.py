@@ -23,6 +23,10 @@ STRONG_PATTERNS = (
     r"\bdoes(?:n't| not) work\b",
     r"\b(?:error|broken|stuck|failed?)\b",
     r"\bcan(?:not|'t)\b",
+    r"\b(?:not|isn't|is not) (?:very )?intuitive\b",
+    r"\b(?:kind of an )?issue\b",
+    r"\bconfus(?:ing|ed)\b",
+    r"\bdoes(?:n't| not) make sense\b",
 )
 EXPECTATION_PATTERNS = (r"\bi expected\b", r"\bi would expect\b", r"\bshould\b")
 STOPWORDS = {

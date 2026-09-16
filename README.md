@@ -1,32 +1,102 @@
 # Review to Issues
 
-Turn recorded UI reviews into evidence-backed issue drafts.
+**Turn recorded UI reviews into evidence-backed issue drafts.**
+
+![Review to Issues: recorded review, selected evidence, reviewable finding](assets/review-to-issues-hero-editorial-v2.png)
+
+## Install it with Codex or Claude Code
+
+Replace the placeholder with this repository's URL, then paste the complete
+prompt into your coding agent:
+
+```text
+Clone <REPOSITORY_URL> into a local folder named review-to-issues and install it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos to inspect the environment, explain any machine-level changes, and only then run ./scripts/setup-macos --install with my approval. Finally run make test and make demo, keep all recordings local, and report the generated report path plus any missing dependency or permission.
+```
+
+Already downloaded the folder? Ask the agent:
+
+```text
+Open this review-to-issues folder, read SKILL.md, prepare it on this Mac, run the tests and demo, and tell me when it is ready for a local QuickTime or downloaded Teams recording. Do not upload media anywhere.
+```
+
+## The use case
 
 A 30-minute UI review may contain five useful findings hidden inside hundreds
-of conversational sentences. This toolkit uses the transcript to locate likely
-problem moments, inspects only those video windows, and creates reviewable
-Markdown findings with timestamps and screenshots.
+of conversational sentences. Afterwards, somebody still has to locate the
+right moments, capture screenshots, and reconstruct what was observed and what
+the reviewer merely expected.
 
-It is not another meeting summarizer, and it does not pretend to create final
-Jira tickets. It separates observed evidence, reviewer expectations, model
-interpretation, and the human decision.
+Review to Issues turns that work into a small, inspectable evidence pipeline:
 
-## What is included
+> Use speech to find likely problem moments. Inspect only those video windows.
+> Produce reviewable Markdown findings with timestamps and screenshots.
 
-- MP4/MOV input and optional VTT/SRT input
-- local FFmpeg audio and frame extraction
-- deterministic candidate windows in JSON
-- beginning/middle/end frame candidates for each window
-- an agent skill and prompts for evidence-aware interpretation
-- Markdown report and finding templates
-- a synthetic demo and repeatable tests
+It is not another meeting summarizer and does not create final tickets
+automatically. Every result remains a draft for a product, QA, UX, or
+requirements professional to confirm, rewrite, or discard.
 
-No Jira integration, cloud backend, Teams API, user accounts, or automatic
-ticket creation are included.
+## Supported local inputs
 
-## Two-minute demo
+| Input | Supported path |
+|---|---|
+| QuickTime Player screen recording | Local `.mov`, with recorded narration |
+| macOS screen recording (`Shift-Command-5`) | Local `.mov`, with recorded narration |
+| Microsoft Teams recording | `.mp4` downloaded to the Mac |
+| Teams transcript | Optional matching `.vtt` or `.srt` downloaded with the recording |
+| Other screen recordings | Local `.mp4` or `.mov` readable by FFmpeg |
 
-Requirements: Python 3.10+ and FFmpeg.
+The package does not connect to Teams, SharePoint, OneDrive, or a cloud video
+service. Synced files must be fully downloaded, not Finder placeholders. See
+[`docs/input-formats.md`](docs/input-formats.md).
+
+## Why transcript-first?
+
+Sending every video frame to a multimodal model is usually unnecessary. The
+transcript already acts as a search index for the recording.
+
+```mermaid
+flowchart LR
+    A[Local UI review] --> B[Timestamped transcript]
+    B --> C[Candidate windows]
+    C --> D[Selected evidence frames]
+    D --> E[Finding drafts]
+    E --> F[Human review]
+```
+
+This approach is faster, cheaper, more data-minimizing, and easier to audit
+than processing the entire recording visually.
+
+## Dependencies on macOS
+
+Run the read-only check first:
+
+```bash
+./scripts/setup-macos
+```
+
+After reviewing the changes, install missing dependencies:
+
+```bash
+./scripts/setup-macos --install
+```
+
+| Dependency | Needed for | Setup behavior |
+|---|---|---|
+| Homebrew | Managed macOS installation | Must already exist; never installed silently |
+| Python 3.10+ | Transcript parsing and report generation | Installed only if missing or too old |
+| FFmpeg + FFprobe | MOV/MP4 probing, audio, frames | Installed only if missing |
+| `whisper.cpp` | Local transcription when no VTT/SRT exists | Optional when a transcript is supplied |
+| multilingual Whisper model | Local transcription | `base` model downloaded into `models/` |
+
+The deterministic Python core uses only the standard library. The setup script
+does not modify shell startup files, request administrator privileges, or
+upload media. Full details are in [`docs/setup-macos.md`](docs/setup-macos.md).
+The installer also runs a transcription smoke test. If the Metal backend fails,
+the transcription wrapper retries locally with `whisper.cpp --no-gpu` and
+remembers that stable project-local fallback. Homebrew itself may update
+metadata and transitive dependencies during an approved installation.
+
+## Two-minute smoke test
 
 ```bash
 make test
@@ -34,76 +104,107 @@ make demo
 open output/demo/report.md
 ```
 
-`make demo` generates a short synthetic MP4 locally, reads the supplied VTT,
-detects transcript-led candidate windows, extracts three frames per candidate,
-and writes:
+The demo creates a synthetic recording locally, reads its supplied VTT,
+deduplicates a repeated issue while retaining separate evidence windows, and
+writes:
 
 ```text
 output/demo/
 ├── assets/
+│   └── finding-*.jpg
 ├── candidates.json
 └── report.md
 ```
 
-The sample intentionally contains a clear bug, diffuse frustration, a reviewer
-misconception, a visual-only issue, a repeated issue, and a harmless remark.
-See [docs/evaluation.md](docs/evaluation.md) for the expected behavior.
+## Analyze a QuickTime or macOS screen recording
 
-## Use your own recording
-
-Put files in `input/` and run:
+With narration but without a separate transcript:
 
 ```bash
-python3 src/review_to_issues.py prepare \
-  --video input/review.mp4 \
-  --transcript input/review.vtt \
-  --output output/my-review
+./scripts/analyze-recording \
+  --video "/path/QuickTime Screen Recording.mov" \
+  --output output/quicktime-review
 ```
 
-If no transcript exists yet:
+The script verifies the input, transcribes locally with `whisper.cpp`, selects
+candidate intervals, and extracts evidence frames.
+
+## Analyze a downloaded Teams recording
+
+Use the matching Teams transcript when one is available:
 
 ```bash
-scripts/extract-audio input/review.mp4 input/review.wav
+./scripts/analyze-recording \
+  --video "/path/Teams Review.mp4" \
+  --transcript "/path/Teams Review.vtt" \
+  --output output/teams-review
 ```
 
-Transcribe the WAV with a local tool, then run `prepare`. The core deliberately
-does not lock the project to one transcription model. Agents can follow
-`SKILL.md` to interpret and verify the generated candidates.
+Without a downloaded transcript, omit `--transcript` to use local
+transcription. The transcript and video must share the same start time for
+their timestamps to align.
 
-## Architecture
+## What a finding separates
+
+| Layer | Meaning |
+|---|---|
+| Observation | What the transcript or sampled frames directly support |
+| Reviewer expectation | What the reviewer says should happen |
+| Interpretation | A tentative classification or explanation |
+| Human decision | Confirm, rewrite, or discard |
+
+A confident statement is not automatically a verified defect. Sparse frames
+also cannot prove flicker, latency, or a brief intermediate state; those cases
+need denser inspection of the candidate interval.
+
+## Repository structure
 
 ```text
-recording + transcript
-        │
-        ▼
-deterministic cue parsing and candidate windows
-        │
-        ▼
-local FFmpeg frame extraction
-        │
-        ▼
-agent interpretation of transcript + selected frames
-        │
-        ▼
-Markdown findings + JSON + human review
+review-to-issues/
+├── SKILL.md                  # Agent workflow and evidence rules
+├── src/                      # Deterministic transcript preparation
+├── scripts/                  # Setup, transcription, media, and packaging
+├── prompts/                  # Detection and verification guidance
+├── templates/                # Portable Markdown output format
+├── examples/                 # Synthetic transcript and expected behavior
+├── docs/                     # Setup, formats, architecture, privacy, limits
+└── tests/                    # Parser, Teams VTT, detection, packaging checks
 ```
 
-The transcript narrows the search space. The video is sampled only around
-candidate moments. That makes the workflow faster, cheaper, more inspectable,
-and more data-minimizing than sending every frame to a multimodal model.
+The stable boundary is `candidates.json`. Transcription tools, agents, or future
+exporters can change without coupling them to the media scripts.
 
-## Privacy
+## Package a release
 
-The included scripts run locally. The whole workflow is only fully local if
-transcription and interpretation are local too. Sending transcripts or frames
-to a cloud model means those artifacts leave the machine. See
-[docs/privacy.md](docs/privacy.md).
+```bash
+make package
+```
+
+This creates `dist/review-to-issues-<version>.tar.gz` and a SHA-256 checksum.
+Recordings, downloaded models, generated reports, caches, and temporary
+validation files are excluded.
+
+## Privacy and scope
+
+The included scripts run locally and make no network calls during analysis.
+Network access is used only when the user explicitly installs Homebrew packages
+or downloads a Whisper model. The whole workflow is only fully local when the
+agent used for interpretation is local too.
+
+Sending audio, transcripts, or screenshots to a cloud agent means those
+artifacts leave the machine. See [`docs/privacy.md`](docs/privacy.md) and
+[`docs/limitations.md`](docs/limitations.md).
+
+Not included: automatic Jira/Linear/Azure DevOps tickets, Teams API access, an
+Obsidian plugin, a cloud backend, or user accounts.
 
 ## Project status
 
-This is a portfolio-ready V0 and a testable V1 foundation. The deterministic
-pipeline works; nuanced finding detection and visual verification remain an
-agent task so their uncertainty stays visible.
+Version `0.1.0` is a portable macOS-oriented package and a testable V1
+foundation. Deterministic preparation and local transcription are automated;
+nuanced visual verification remains an explicit agent or human task so
+uncertainty stays visible.
 
-MIT licensed.
+## License
 
+[MIT](LICENSE)

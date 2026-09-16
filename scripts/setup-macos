@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+project_dir=$(cd "$script_dir/.." && pwd)
+install=0
+model_name=base
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/setup-macos [--install] [--model NAME]
+
+Without --install this command only checks the environment.
+With --install it uses Homebrew for missing packages and downloads a local
+multilingual whisper.cpp model into models/. Network access is required.
+
+Default model: base. Examples: tiny, base, small, large-v3-turbo-q5_0.
+EOF
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --install) install=1; shift ;;
+    --model) model_name=${2:-}; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ "$(uname -s)" != Darwin ]]; then
+  echo "This installer targets macOS. Use scripts/check-environment and install Python 3.10+, FFmpeg, and whisper.cpp with your system package manager." >&2
+  exit 1
+fi
+
+if [[ "$install" -eq 0 ]]; then
+  "$script_dir/check-environment"
+  printf '\nNo changes made. Run ./scripts/setup-macos --install to install missing dependencies.\n'
+  exit 0
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+Homebrew is required but was not found.
+Install it from https://brew.sh, then rerun:
+  ./scripts/setup-macos --install
+
+An agent should ask for approval before running Homebrew's remote installer.
+EOF
+  exit 1
+fi
+
+packages=()
+if ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)'; then
+  packages+=(python)
+fi
+if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+  packages+=(ffmpeg)
+fi
+if ! command -v whisper-cli >/dev/null 2>&1; then
+  packages+=(whisper.cpp)
+fi
+
+if [[ "${#packages[@]}" -gt 0 ]]; then
+  printf 'Installing missing Homebrew packages: %s\n' "${packages[*]}"
+  brew install "${packages[@]}"
+else
+  echo "Homebrew dependencies are already installed."
+fi
+
+mkdir -p "$project_dir/models"
+model_path="$project_dir/models/ggml-${model_name}.bin"
+if [[ ! -s "$model_path" ]]; then
+  model_url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${model_name}.bin"
+  temporary_path="$model_path.partial"
+  printf 'Downloading multilingual whisper.cpp model %s...\n' "$model_name"
+  curl -fL --retry 3 --progress-bar "$model_url" -o "$temporary_path"
+  if [[ ! -s "$temporary_path" ]]; then
+    echo "Model download produced an empty file." >&2
+    exit 1
+  fi
+  mv "$temporary_path" "$model_path"
+else
+  printf 'Whisper model already present: %s\n' "$model_path"
+fi
+
+REVIEW_TO_ISSUES_MODEL_PATH="$model_path" "$script_dir/check-environment" --require-transcription
+
+smoke_dir=$(mktemp -d "${TMPDIR:-/tmp}/review-to-issues-setup.XXXXXX")
+trap 'rm -rf "$smoke_dir"' EXIT
+ffmpeg -hide_banner -loglevel error -y \
+  -f lavfi -i "anullsrc=r=16000:cl=mono" -t 0.5 "$smoke_dir/silence.wav"
+REVIEW_TO_ISSUES_MODEL_PATH="$model_path" \
+  "$script_dir/transcribe-local" "$smoke_dir/silence.wav" "$smoke_dir/smoke.vtt" en >/dev/null
+echo "Local transcription smoke test passed."

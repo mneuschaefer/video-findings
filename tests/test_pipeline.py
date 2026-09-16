@@ -1,4 +1,5 @@
 import importlib.util
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -32,6 +33,24 @@ class PipelineTests(unittest.TestCase):
             cues = MODULE.parse_transcript(path)
         self.assertEqual(cues[0].end, 4.5)
 
+    def test_parses_teams_style_vtt_speaker_and_settings(self):
+        content = (
+            "WEBVTT\n\n"
+            "a1\n"
+            "00:00:03.000 --> 00:00:05.000 align:start position:0%\n"
+            "<v Reviewer>Nothing happens after Continue.</v>\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "teams.vtt"
+            path.write_text(content, encoding="utf-8")
+            cues = MODULE.parse_transcript(path)
+        self.assertEqual(cues[0].text, "Nothing happens after Continue.")
+
+    def test_detects_spoken_usability_irritation(self):
+        cues = [MODULE.Cue(2.0, 4.0, "This is not very intuitive for me.")]
+        candidate = MODULE.detect_candidates(cues)[0]
+        self.assertEqual(candidate.confidence, "High")
+
     def test_demo_has_two_groups_and_merges_repeat(self):
         transcript = Path(__file__).parents[1] / "examples" / "sample-transcript.vtt"
         candidates = MODULE.detect_candidates(MODULE.parse_transcript(transcript))
@@ -45,6 +64,19 @@ class PipelineTests(unittest.TestCase):
         cues = [MODULE.Cue(0.25, 1.0, "Nothing happens")]
         candidate = MODULE.detect_candidates(cues, padding=2.0)[0]
         self.assertEqual(candidate.windows[0]["start"], 0.0)
+
+    def test_user_facing_scripts_are_executable(self):
+        scripts = Path(__file__).parents[1] / "scripts"
+        for name in (
+            "analyze-recording",
+            "check-environment",
+            "extract-audio",
+            "extract-frames",
+            "package-release",
+            "setup-macos",
+            "transcribe-local",
+        ):
+            self.assertTrue(os.access(scripts / name, os.X_OK), name)
 
 
 if __name__ == "__main__":

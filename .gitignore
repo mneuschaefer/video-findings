@@ -8,4 +8,8 @@ input/*
 output/*
 !output/.gitkeep
 examples/generated/
-
+models/*.bin
+models/.force-cpu
+!models/.gitkeep
+dist/
+validation/

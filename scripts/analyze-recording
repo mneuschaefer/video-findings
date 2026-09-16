@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+project_dir=$(cd "$script_dir/.." && pwd)
+video=""
+transcript=""
+output=""
+language=auto
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/analyze-recording --video PATH --output DIRECTORY [OPTIONS]
+
+Options:
+  --transcript PATH   Existing VTT/SRT, for example from a Teams recording
+  --language CODE     Transcription language when no transcript exists (default: auto)
+  -h, --help          Show this help
+
+Examples:
+  scripts/analyze-recording --video review.mov --output output/review
+  scripts/analyze-recording --video teams.mp4 --transcript teams.vtt --output output/teams
+EOF
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --video) video=${2:-}; shift 2 ;;
+    --transcript) transcript=${2:-}; shift 2 ;;
+    --output) output=${2:-}; shift 2 ;;
+    --language) language=${2:-}; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$video" || -z "$output" ]]; then
+  usage >&2
+  exit 2
+fi
+
+check_args=(--video "$video")
+if [[ -n "$transcript" ]]; then
+  check_args+=(--transcript "$transcript")
+else
+  check_args+=(--require-transcription)
+fi
+"$script_dir/check-environment" "${check_args[@]}"
+
+mkdir -p "$output"
+if [[ -z "$transcript" ]]; then
+  transcript="$output/transcript.vtt"
+  "$script_dir/transcribe-local" "$video" "$transcript" "$language"
+fi
+
+python3 "$project_dir/src/review_to_issues.py" prepare \
+  --video "$video" \
+  --transcript "$transcript" \
+  --output "$output"
+
+printf '\nDraft ready: %s/report.md\n' "$output"
+

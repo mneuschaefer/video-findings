@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
+  echo "Usage: $0 INPUT_MEDIA OUTPUT_VTT [LANGUAGE]" >&2
+  echo "LANGUAGE defaults to auto; examples: en, de" >&2
+  exit 2
+fi
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+project_dir=$(cd "$script_dir/.." && pwd)
+input_media=$1
+output_vtt=$2
+language=${3:-auto}
+model_path=${REVIEW_TO_ISSUES_MODEL_PATH:-$project_dir/models/ggml-base.bin}
+cpu_marker="$project_dir/models/.force-cpu"
+
+if [[ ! -f "$input_media" || ! -r "$input_media" ]]; then
+  echo "Input is not a readable local file: $input_media" >&2
+  exit 1
+fi
+if ! command -v whisper-cli >/dev/null 2>&1; then
+  echo "whisper-cli is missing. On macOS run: ./scripts/setup-macos --install" >&2
+  exit 1
+fi
+if [[ ! -f "$model_path" || ! -r "$model_path" ]]; then
+  echo "Whisper model is missing: $model_path" >&2
+  echo "On macOS run: ./scripts/setup-macos --install" >&2
+  exit 1
+fi
+case "$output_vtt" in
+  *.vtt|*.VTT) ;;
+  *) echo "Output must end in .vtt: $output_vtt" >&2; exit 2 ;;
+esac
+
+mkdir -p "$(dirname "$output_vtt")"
+temporary_dir=$(mktemp -d "${TMPDIR:-/tmp}/review-to-issues.XXXXXX")
+trap 'rm -rf "$temporary_dir"' EXIT
+wav="$temporary_dir/audio.wav"
+output_base=${output_vtt%.*}
+
+"$script_dir/extract-audio" "$input_media" "$wav" >/dev/null
+whisper_args=(
+  --model "$model_path"
+  --file "$wav"
+  --language "$language"
+  --output-vtt
+  --output-file "$output_base"
+  --no-prints
+)
+
+force_cpu=${REVIEW_TO_ISSUES_NO_GPU:-0}
+if [[ -f "$cpu_marker" && "${REVIEW_TO_ISSUES_USE_GPU:-0}" != 1 ]]; then
+  force_cpu=1
+fi
+
+if [[ "$force_cpu" == 1 ]]; then
+  whisper-cli --no-gpu "${whisper_args[@]}"
+else
+  gpu_log="$temporary_dir/whisper-gpu.log"
+  if ! /bin/sh -c 'whisper-cli "$@"; result_code=$?; exit $result_code' \
+    review-to-issues-gpu "${whisper_args[@]}" 2>"$gpu_log"; then
+    echo "GPU transcription is unavailable on this Mac; switching to the stable local CPU mode." >&2
+    rm -f "$output_vtt"
+    touch "$cpu_marker"
+    echo "Saved CPU fallback marker: $cpu_marker" >&2
+    whisper-cli --no-gpu "${whisper_args[@]}"
+  fi
+fi
+
+if [[ ! -s "$output_vtt" ]]; then
+  echo "Transcription did not create $output_vtt" >&2
+  exit 1
+fi
+printf 'Wrote %s\n' "$output_vtt"

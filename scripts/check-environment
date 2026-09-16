@@ -1,27 +1,142 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+project_dir=$(cd "$script_dir/.." && pwd)
+require_transcription=0
+video=""
+transcript=""
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/check-environment [OPTIONS]
+
+Options:
+  --require-transcription   Require whisper-cli and a local model
+  --video PATH              Verify that FFprobe can read a local MOV/MP4 file
+  --transcript PATH         Verify that a local VTT/SRT file is readable
+  -h, --help                Show this help
+EOF
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --require-transcription) require_transcription=1; shift ;;
+    --video) video=${2:-}; shift 2 ;;
+    --transcript) transcript=${2:-}; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
 missing=0
-for command_name in python3 ffmpeg ffprobe; do
+optional_missing=0
+
+check_command() {
+  local command_name=$1
+  local required=$2
   if command -v "$command_name" >/dev/null 2>&1; then
-    printf 'ok      %-10s %s\n' "$command_name" "$(command -v "$command_name")"
+    printf 'ok      %-18s %s\n' "$command_name" "$(command -v "$command_name")"
   else
-    printf 'missing %-10s\n' "$command_name"
+    local label=optional
+    if [[ "$required" -eq 1 ]]; then label=missing; missing=1; else optional_missing=1; fi
+    printf '%-7s %-18s\n' "$label" "$command_name"
+  fi
+}
+
+printf 'Platform: %s %s\n' "$(uname -s)" "$(uname -m)"
+check_command python3 1
+check_command ffmpeg 1
+check_command ffprobe 1
+check_command whisper-cli "$require_transcription"
+
+if command -v python3 >/dev/null 2>&1; then
+  if python3 - <<'PY'
+import sys
+raise SystemExit(0 if sys.version_info >= (3, 10) else 1)
+PY
+  then
+    printf 'ok      %-18s %s\n' 'Python version' "$(python3 -c 'import sys; print(sys.version.split()[0])')"
+  else
+    printf 'missing %-18s Python 3.10 or newer is required\n' 'Python version'
+    missing=1
+  fi
+fi
+
+model_path=${REVIEW_TO_ISSUES_MODEL_PATH:-$project_dir/models/ggml-base.bin}
+if [[ -f "$model_path" && -r "$model_path" ]]; then
+  printf 'ok      %-18s %s\n' 'Whisper model' "$model_path"
+else
+  label=optional
+  if [[ "$require_transcription" -eq 1 ]]; then label=missing; missing=1; else optional_missing=1; fi
+  printf '%-7s %-18s %s\n' "$label" 'Whisper model' "$model_path"
+fi
+if [[ -f "$project_dir/models/.force-cpu" ]]; then
+  printf 'info    %-18s %s\n' 'Transcription mode' 'CPU fallback (project-local marker)'
+fi
+
+for directory in input output; do
+  target="$project_dir/$directory"
+  if [[ -d "$target" && -w "$target" ]]; then
+    probe=$(mktemp "$target/.write-test.XXXXXX")
+    rm "$probe"
+    printf 'ok      %-18s %s\n' "$directory writable" "$target"
+  else
+    printf 'missing %-18s %s\n' "$directory writable" "$target"
     missing=1
   fi
 done
 
-python3 - <<'PY'
-import sys
-if sys.version_info < (3, 10):
-    raise SystemExit("Python 3.10 or newer is required")
-print(f"ok      python     {sys.version.split()[0]}")
-PY
+if [[ -w "$project_dir" ]]; then
+  printf 'ok      %-18s %s\n' 'project writable' "$project_dir"
+else
+  printf 'missing %-18s %s\n' 'project writable' "$project_dir"
+  missing=1
+fi
+
+for required_file in SKILL.md scripts/analyze-recording scripts/transcribe-local; do
+  target="$project_dir/$required_file"
+  if [[ -r "$target" ]]; then
+    printf 'ok      %-18s %s\n' 'package file' "$required_file"
+  else
+    printf 'missing %-18s %s\n' 'package file' "$target"
+    missing=1
+  fi
+done
+
+if [[ -n "$video" ]]; then
+  if [[ ! -f "$video" || ! -r "$video" ]]; then
+    printf 'missing %-18s %s\n' 'video readable' "$video"
+    missing=1
+  elif command -v ffprobe >/dev/null 2>&1 && ffprobe -v error -show_entries format=duration -of csv=p=0 "$video" >/dev/null; then
+    duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$video")
+    printf 'ok      %-18s %s seconds (%s)\n' 'video readable' "$duration" "$video"
+  else
+    printf 'missing %-18s FFprobe cannot read %s\n' 'video readable' "$video"
+    missing=1
+  fi
+fi
+
+if [[ -n "$transcript" ]]; then
+  case "${transcript##*.}" in
+    vtt|VTT|srt|SRT) ;;
+    *) printf 'missing %-18s expected .vtt or .srt: %s\n' 'transcript format' "$transcript"; missing=1 ;;
+  esac
+  if [[ -f "$transcript" && -r "$transcript" ]]; then
+    printf 'ok      %-18s %s\n' 'transcript readable' "$transcript"
+  else
+    printf 'missing %-18s %s\n' 'transcript readable' "$transcript"
+    missing=1
+  fi
+fi
 
 if [[ "$missing" -ne 0 ]]; then
-  printf '\nInstall the missing tools and run this check again.\n' >&2
+  printf '\nEnvironment is not ready. On macOS run: ./scripts/setup-macos --install\n' >&2
   exit 1
 fi
 
-printf '\nEnvironment is ready.\n'
-
+if [[ "$optional_missing" -ne 0 ]]; then
+  printf '\nCore environment is ready. Local transcription is not installed; existing VTT/SRT files still work.\n'
+else
+  printf '\nEnvironment is ready, including local transcription.\n'
+fi

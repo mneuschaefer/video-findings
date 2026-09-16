@@ -8,5 +8,8 @@ service or cloud agent receives audio, transcript text, or screenshots, those
 artifacts leave the machine and are subject to that provider's terms and data
 handling. Obtain the necessary consent and remove sensitive data before upload.
 
-The repository performs no network calls and contains no telemetry.
-
+Analysis commands perform no network calls and the package contains no
+telemetry. `scripts/setup-macos --install` is the explicit exception: Homebrew
+may fetch packages and the script downloads the selected Whisper model from the
+official whisper.cpp model repository. No recording, transcript, frame, or
+report is sent during setup.
