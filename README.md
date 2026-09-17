@@ -2,6 +2,11 @@
 
 **Turn narrated videos into evidence-backed visual findings.**
 
+> **Platform status:** The current release supports and is tested on macOS.
+> Its standard-library Python core and FFmpeg-based media pipeline are designed
+> to be portable, but setup, local Whisper transcription, and the complete
+> workflow have not yet been adapted or verified for Linux or Windows.
+
 ![Video Findings: narrated video, selected evidence, reviewable finding](assets/video-findings-hero-editorial-v2.png)
 
 ## Install it with Codex or Claude Code
