@@ -46,7 +46,7 @@ Replace the placeholder with this repository's URL, then give the complete
 prompt to your coding agent:
 
 ```text
-Clone <REPOSITORY_URL> into a local folder named video-findings and prepare it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos only as a read-only inspection. Reuse an installed transcription model and never download more than one. Recommend Parakeet TDT v3 on a compatible Mac, but let me choose another supported backend or model before installation. Explain the exact model choice, its reported download size, and each missing core dependency; only after my approval run ./scripts/setup-macos --install --yes with the same options. Finally run make test and make demo, keep all recordings local, and report what was reused or installed.
+Clone <REPOSITORY_URL> into a local folder named video-findings and prepare it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos only as a read-only inspection. Prefer an existing VTT/SRT transcript or reuse an installed local transcription backend. If neither is available, propose the minimal supported whisper.cpp fallback with its exact model size. Never download more than one model. Explain every missing core dependency; only after my approval run ./scripts/setup-macos --install --yes with the same options. Finally run make test and make demo, keep all recordings local, and report what was reused or installed.
 ```
 
 If you already downloaded the folder, use this prompt:
@@ -169,15 +169,14 @@ Setup chooses the smallest necessary action:
 
 | What is already available | Default action |
 |---|---|
-| MacParakeet with a local Parakeet model | Reuse it; download nothing |
+| Matching VTT/SRT transcript | Use it; download no transcription model |
 | Complete local Whisper setup | Reuse it; download nothing |
-| MacParakeet installed, but no model | Download recommended Parakeet TDT v3, reported by MacParakeet as ~465 MB |
-| MacParakeet unavailable and no model | Install the Whisper fallback and download `base`, 142 MiB |
+| Another compatible local transcript workflow | Use its VTT/SRT output; download nothing here |
+| No transcript or ready backend | Install `whisper.cpp` and download multilingual `base`, 142 MiB |
 
-To use another model, change the read-only plan before approving it:
+To use another Whisper model, change the read-only plan before approving it:
 
 ```bash
-./scripts/setup-macos --backend parakeet --parakeet-model parakeet-v3
 ./scripts/setup-macos --backend whisper --model small
 ```
 
@@ -186,27 +185,26 @@ To use another model, change the read-only plan before approving it:
 | Homebrew | Managed macOS installation | Must already exist; never installed silently |
 | Python 3.10+ | Transcript parsing and report generation | Installed only if missing or too old |
 | FFmpeg + FFprobe | MOV/MP4 probing, audio, frames | Installed only if missing |
-| MacParakeet + Parakeet model | Preferred local transcription | Reused when ready; otherwise the one selected Parakeet model is downloaded |
-| `whisper.cpp` | Fallback when MacParakeet is unavailable | Installed only if no ready backend exists or explicitly selected |
+| Direct FluidAudio + Parakeet | Optional neutral local alternative | Managed separately; provide its timestamped transcript to Video Findings |
+| `whisper.cpp` | Automated local transcription fallback | Installed only if no ready supported backend exists or explicitly selected |
 | multilingual Whisper model | One fallback model | Defaults to `base` (142 MiB); another model can be selected before installation |
 
 ### Official downloads and documentation
 
-- [MacParakeet](https://macparakeet.com/) — install this first when you want to
-  use the recommended Parakeet backend. Its
-  [source and installation options](https://github.com/moona3k/macparakeet)
-  are also available on GitHub.
 - [Homebrew](https://brew.sh/) — must already be installed if the setup needs
   to add missing command-line dependencies.
 - [FFmpeg](https://ffmpeg.org/download.html) — required for video and audio
   processing. The setup installs the
   [Homebrew FFmpeg formula](https://formulae.brew.sh/formula/ffmpeg) when it is
   missing.
-- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — the transcription
-  fallback when MacParakeet is unavailable. The setup installs its Homebrew
-  formula and one selected multilingual model only when needed.
-- [FluidAudio ASR model guide](https://github.com/FluidInference/FluidAudio/blob/main/Documentation/Models.md)
-  — current Parakeet-compatible model information.
+- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — the automated local
+  transcription fallback. The setup installs its Homebrew formula and one
+  selected multilingual model only when needed.
+- [FluidAudio](https://github.com/FluidInference/FluidAudio) — a neutral,
+  open-source Swift/CoreML route for running Parakeet directly, without a
+  separate dictation app. Its
+  [ASR model guide](https://github.com/FluidInference/FluidAudio/blob/main/Documentation/Models.md)
+  lists current Parakeet-compatible models.
 
 The Python core uses only the standard library. The setup script does not
 modify shell startup files, request administrator privileges, or upload media.
@@ -214,11 +212,10 @@ Before it changes the Mac, it reports the chosen transcription backend and
 each missing Homebrew formula. Full details are in
 [`docs/setup-macos.md`](docs/setup-macos.md).
 
-If a compatible model is already installed, the additional speech model
-download is 0 MiB. Otherwise, setup downloads exactly one model. The tested
-recommendation for a Mac with MacParakeet is Parakeet TDT v3, reported by
-MacParakeet as about 465 MB. If MacParakeet is unavailable, setup uses Whisper
-`base` at 142 MiB. You can instead choose `tiny` at 75 MiB, `small` at 466 MiB,
+If a compatible transcript or supported local model is already available, the
+additional speech-model download is 0 MiB. Otherwise, the automated setup
+downloads exactly one multilingual Whisper model. It defaults to `base` at
+142 MiB. You can instead choose `tiny` at 75 MiB, `small` at 466 MiB,
 `medium` at 1.5 GiB, or `large` at 2.9 GiB. Choose a larger or newer compatible
 model before installation if the device or expected audio quality calls for
 one. Homebrew may also download missing Python, FFmpeg, or `whisper.cpp`
@@ -226,12 +223,15 @@ bottles and system-specific dependencies. The plan lists these separately from
 the model download. The Whisper sizes come from the official
 [whisper.cpp model table](https://github.com/ggml-org/whisper.cpp#memory-usage).
 
-Parakeet TDT v3 is the tested and preferred backend. You can select a newer
-MacParakeet-compatible model from `macparakeet-cli models list` with
-`--parakeet-model`. To use an installed variant, set
-`VIDEO_FINDINGS_PARAKEET_MODEL`. You can provide an existing compatible
-Whisper model through `VIDEO_FINDINGS_MODEL_PATH`. The workflow never switches
-to a newer model automatically.
+Parakeet remains available as an optional direct local route through
+[FluidAudio](https://github.com/FluidInference/FluidAudio). FluidAudio runs the
+model through Swift and CoreML and documents Parakeet TDT v3 as multilingual
+across 25 European languages. This repository does not install a separate
+Parakeet desktop or dictation app. Until a direct FluidAudio adapter is bundled,
+use FluidAudio separately and provide its timestamped transcript to Video
+Findings. You can provide an existing compatible Whisper model through
+`VIDEO_FINDINGS_MODEL_PATH`. The workflow never switches to a newer model
+automatically.
 
 When a backend is ready, the installer runs a transcription smoke test. If the
 Whisper Metal backend fails, the wrapper retries locally with
@@ -282,8 +282,8 @@ With narration but without a separate transcript:
   --output output/quicktime-review
 ```
 
-The script checks the input and uses an installed MacParakeet model when one is
-ready. Otherwise, it uses a ready local `whisper.cpp` setup. It preserves every
+The script checks the input and uses a ready supported local transcription
+backend. Otherwise, it uses the minimal `whisper.cpp` fallback. It preserves every
 timestamped cue and creates optional keyword leads. The agent then reviews the
 complete transcript for meaning and collects the visual evidence for each
 finding. The keyword script does not make that decision. Each final finding
