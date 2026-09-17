@@ -11,9 +11,10 @@
 
 ## See it on a narrated review
 
-[![Watch the narrated Video Findings demo](assets/narrated-demo-preview.png)](assets/narrated-demo.mp4)
+[![Watch the narrated Video Findings demo](assets/narrated-demo-preview.png)](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)
 
-Select the preview to watch the MP4 with sound.
+Select the preview to watch the MP4 with sound, or
+[download the versioned demo file](assets/narrated-demo.mp4).
 
 ### Example output
 

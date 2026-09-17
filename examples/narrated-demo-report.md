@@ -1,6 +1,6 @@
 # Checkout review findings
 
-**Source:** [Narrated checkout review](../assets/narrated-demo.mp4)  
+**Source:** [Narrated checkout review](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)  
 **Status:** Draft — human review required
 
 ## Summary
@@ -14,7 +14,7 @@ ranges; the overlapping discount message is a separate finding.
 **Status:** Needs review  
 **Confidence:** Medium  
 **Time ranges:** 00:22.720–00:31.520; 00:46.720–00:53.360  
-**Watch from:** [00:22.720 in the original video](../assets/narrated-demo.mp4#t=22.720)
+**Watch from:** [00:22.720 in the original video](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157#t=22.720)
 
 ### Observation
 
@@ -37,7 +37,7 @@ Possible interaction-feedback or checkout-navigation failure.
 **Status:** Needs review  
 **Confidence:** High  
 **Time range:** 01:08.720–01:18.560  
-**Watch from:** [01:08.720 in the original video](../assets/narrated-demo.mp4#t=68.720)
+**Watch from:** [01:08.720 in the original video](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157#t=68.720)
 
 ### Observation
 
