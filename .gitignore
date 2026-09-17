@@ -1,15 +1,30 @@
+# macOS metadata
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Python
 __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+
+# Local recordings and generated output
 input/*
 !input/.gitkeep
 output/*
 !output/.gitkeep
 examples/generated/
+
+# Local models and runtime state
 models/*.bin
 models/.force-cpu
 !models/.gitkeep
+
+# Build and validation artifacts
 dist/
 validation/
