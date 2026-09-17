@@ -14,6 +14,9 @@ The project has three deliberately separate layers.
    semantically in its source language. Keyword leads never define coverage.
    The skill and prompts distinguish observation, expectation, interpretation,
    and uncertainty, then select additional visual windows when required.
+   Optional language-specific keyword profiles affect only routing. Report
+   language follows user context; transcript and quote/UI languages remain
+   separate metadata.
 3. **Presentation layer:** templates produce a detailed `report.md`, reusable
    `findings.json`, and sparse evidence with one image per finding. Findings
    that depend on motion are marked `dynamic`; selected short clips are created

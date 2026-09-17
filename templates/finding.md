@@ -1,6 +1,9 @@
-<!-- Localize all headings, statuses, and prose to the user-requested language.
-If none was requested, use the dominant language of the recording/transcript.
-Preserve direct quotes and visible UI labels in their original language. -->
+<!-- Language policy:
+- Transcript language: the source language; it does not determine the report.
+- Report language priority: current instruction, known user preference,
+  current request language, then dominant transcript language as fallback.
+- Quote/UI language: preserve original wording unless translation is requested.
+-->
 
 ## {{ title }}
 

@@ -7,9 +7,9 @@
 - Numeric motion peaks can help locate transitions, but they cannot identify a
   bug, interaction, or cause without transcript and visual review.
 - Reviewer expectations may be incorrect or outside the intended requirements.
-- Keyword candidates are intentionally simple, strongest for direct English
-  wording, and are not final findings. Language-independent detection requires
-  semantic AI review of the complete cue manifest.
+- Keyword candidates are intentionally simple and are not final findings.
+  Optional language profiles improve routing for supported wording but never
+  replace language-independent semantic review of the complete cue manifest.
 - The AI can still misunderstand ambiguous wording, mixed languages, irony, or
   domain-specific references; preserve quotes and mark uncertainty.
 - Visual evidence cannot establish backend behavior or root cause.

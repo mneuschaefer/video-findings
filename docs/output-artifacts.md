@@ -3,6 +3,12 @@
 The first pass creates a sparse overview and preserves enough source material
 to regenerate later reports without retranscribing the recording.
 
+`findings.json` keeps `transcript_language` and `report_language` separate.
+The report language follows the current user instruction, known preference,
+current request language, and only then the transcript language. Direct quotes
+and visible UI labels preserve their original language unless translation is
+requested.
+
 | Artifact | Purpose |
 |---|---|
 | `transcript-source.vtt` or `.srt` | Preserved timestamped source transcript |

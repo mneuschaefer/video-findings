@@ -7,6 +7,7 @@ video=""
 transcript=""
 output=""
 language=auto
+keyword_profile=en
 frame_mode=single
 motion_scan=on
 
@@ -17,6 +18,7 @@ Usage: scripts/analyze-recording --video PATH --output DIRECTORY [OPTIONS]
 Options:
   --transcript PATH   Existing VTT/SRT, for example from a Teams recording
   --language CODE     Transcription language when no transcript exists (default: auto)
+  --keyword-profile PROFILE  Optional heuristic profile: en, de, JSON path, or none
   --frame-mode MODE   single (default) or dense
   --no-motion-scan    Skip the compact numeric whole-video motion index
   -h, --help          Show this help
@@ -33,6 +35,7 @@ while [[ "$#" -gt 0 ]]; do
     --transcript) transcript=${2:-}; shift 2 ;;
     --output) output=${2:-}; shift 2 ;;
     --language) language=${2:-}; shift 2 ;;
+    --keyword-profile) keyword_profile=${2:-}; shift 2 ;;
     --frame-mode) frame_mode=${2:-}; shift 2 ;;
     --no-motion-scan) motion_scan=off; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -68,6 +71,7 @@ python3 "$project_dir/src/video_findings.py" prepare \
   --video "$video" \
   --transcript "$transcript" \
   --output "$output" \
+  --keyword-profile "$keyword_profile" \
   --frame-mode "$frame_mode"
 
 if [[ "$motion_scan" == "on" ]]; then

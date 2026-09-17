@@ -57,7 +57,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-Version `0.2.0` works with narrated recordings in which spoken content only
+Version `0.2.1` works with narrated recordings in which spoken content only
 makes sense together with the matching image or video segment. UI reviews are
 the included tested example, not a restriction on how the skill can be used.
 
@@ -117,10 +117,27 @@ can suggest where to look, but real reviews often describe problems vaguely or
 indirectly. Keywords alone cannot provide reliable coverage across languages.
 
 The agent reads the complete cue manifest, identifies possible findings in any
-transcript language, and inspects the matching video windows. By default, the
-finding titles, explanations, statuses, and decisions use the dominant language
-of the recording or transcript. Direct quotes and visible UI labels stay in
-their original language. The user can request a different output language.
+transcript language, and inspects the matching video windows. Report language
+follows the current instruction first, then a known user preference, then the
+language of the current request. The dominant transcript language is only the
+fallback. Direct quotes and visible UI labels stay in their original language
+unless the user requests translation.
+
+These are deliberately separate: transcript language describes the source,
+report language describes the deliverable, and quote/UI language preserves the
+evidence. A German recording can therefore produce an English report without
+translating or rewriting its German evidence.
+
+Optional `en` and `de` keyword profiles can improve the initial routing pass:
+
+```bash
+./scripts/analyze-recording --video review.mov --output output/review \
+  --keyword-profile de
+```
+
+Use a compatible JSON profile path for another language, or `none` to disable
+keyword leads. Regardless of profile, the AI still reviews every transcript
+cue semantically; keyword matching never defines coverage.
 
 ## macOS setup
 
@@ -335,7 +352,7 @@ accounts.
 
 ## Project status
 
-Version `0.2.0` is a portable, testable foundation for macOS. UI reviews are
+Version `0.2.1` is a portable, testable foundation for macOS. UI reviews are
 the included tested example. It automates deterministic preparation and local
 transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.

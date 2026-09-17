@@ -37,9 +37,12 @@ enough.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
    `transcript.md`, `transcript-cues.json`, an archived source VTT/SRT, optional
-   keyword leads, a compact numeric `motion-1s.tsv`, one initial screenshot per
-   lead, and a preparation report. The motion index creates no screenshots or
-   clips and is a routing aid, not proof of a defect.
+   optional keyword leads, a compact numeric `motion-1s.tsv`, one initial
+   screenshot per lead, and a preparation report. Use `--keyword-profile de`,
+   `en`, a compatible JSON profile path, or `none` when useful. Profiles only
+   improve routing; they never restrict the complete semantic review. The
+   motion index creates no screenshots or clips and is a routing aid, not proof
+   of a defect.
    These transcript artifacts are the reusable source from which reports can be
    regenerated later. The default `single` frame mode keeps the review compact;
    use `--frame-mode dense` only when the user explicitly asks for many samples
@@ -52,8 +55,10 @@ enough.
    user role, requirement, severity, root cause, or expected behavior when the
    recording does not establish it. Keyword matches are optional hints only;
    they are neither findings nor a coverage boundary. Detect findings in any
-   transcript language. Unless the user requested another language, write the
-   findings in the dominant transcript language.
+   transcript language. Resolve the report language in this order: the current
+   user instruction, a known user preference, the language of the current user
+   request, and only then the dominant transcript language. Never let the
+   transcript override a higher-priority user-language signal.
 5. For each AI-selected finding, choose one timestamp that shows the most
    informative visible state and run
    `scripts/extract-frame VIDEO TIMESTAMP OUTPUT_JPG`. If the first image is
@@ -85,6 +90,13 @@ Read [docs/setup-macos.md](docs/setup-macos.md) when installing on a new Mac and
 alignment is unclear.
 
 ## Required distinctions
+
+Keep three language concepts separate:
+
+- **Transcript language:** the language spoken in the source recording.
+- **Report language:** selected from the user-context priority above.
+- **Quote/UI language:** direct quotes and visible labels remain in their
+  original language unless the user requests translation.
 
 - **Observation:** directly supported by transcript or visible evidence.
 - **Reviewer expectation:** what the reviewer says should happen.

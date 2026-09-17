@@ -20,23 +20,7 @@ TIMESTAMP_RE = re.compile(
     r"(?P<end>\d{2}:\d{2}(?::\d{2})?[.,]\d{3})"
 )
 VTT_SPEAKER_RE = re.compile(r"<v(?:\.[^ >]+)?\s+([^>]+)>", re.IGNORECASE)
-STRONG_PATTERNS = (
-    r"\bnothing happens\b",
-    r"\bno (?:visible )?response\b",
-    r"\bdoes(?:n't| not) work\b",
-    r"\b(?:error|broken|stuck|failed?)\b",
-    r"\bcan(?:not|'t)\b",
-    r"\b(?:not|isn't|is not) (?:very )?intuitive\b",
-    r"\b(?:kind of an )?issue\b",
-    r"\bconfus(?:ing|ed)\b",
-    r"\bdoes(?:n't| not) make sense\b",
-)
-EXPECTATION_PATTERNS = (r"\bi expected\b", r"\bi would expect\b", r"\bshould\b")
-STOPWORDS = {
-    "again", "although", "back", "clicked", "click", "does", "from", "happens",
-    "have", "into", "nothing", "response", "still", "that", "this", "visible",
-    "with", "would", "expected", "expect", "there", "take", "although", "design",
-}
+KEYWORD_PROFILE_DIR = Path(__file__).parents[1] / "keyword_profiles"
 
 
 @dataclass
@@ -56,6 +40,52 @@ class Candidate:
     source_ranges: list[str] = field(default_factory=list)
     windows: list[dict[str, float]] = field(default_factory=list)
     frames: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class KeywordProfile:
+    name: str
+    strong_patterns: tuple[str, ...]
+    expectation_patterns: tuple[str, ...]
+    stopwords: frozenset[str]
+
+
+def select_report_language(
+    current_instruction: str | None = None,
+    known_user_preference: str | None = None,
+    request_language: str | None = None,
+    transcript_language: str | None = None,
+) -> str:
+    """Resolve report language without treating transcript language as user intent."""
+    for value in (
+        current_instruction,
+        known_user_preference,
+        request_language,
+        transcript_language,
+    ):
+        if value and value.strip():
+            return value.strip()
+    raise ValueError("A report language could not be resolved from the available context.")
+
+
+def load_keyword_profile(value: str | Path | None = "en") -> KeywordProfile | None:
+    """Load an optional heuristic profile; semantic AI review remains authoritative."""
+    if value is None or str(value).lower() == "none":
+        return None
+    supplied = Path(value)
+    path = supplied if supplied.is_file() else KEYWORD_PROFILE_DIR / f"{value}.json"
+    if not path.is_file():
+        raise ValueError(f"Keyword profile not found: {value}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        return KeywordProfile(
+            name=str(payload["name"]),
+            strong_patterns=tuple(payload["strong_patterns"]),
+            expectation_patterns=tuple(payload["expectation_patterns"]),
+            stopwords=frozenset(word.lower() for word in payload.get("stopwords", [])),
+        )
+    except (KeyError, TypeError) as error:
+        raise ValueError(f"Invalid keyword profile: {path}") from error
 
 
 def timestamp_to_seconds(value: str) -> float:
@@ -102,35 +132,48 @@ def parse_transcript(path: Path) -> list[Cue]:
     return cues
 
 
-def cue_kind(text: str) -> tuple[str, str] | None:
+def cue_kind(text: str, profile: KeywordProfile) -> tuple[str, str] | None:
     lowered = text.lower()
-    if any(re.search(pattern, lowered) for pattern in STRONG_PATTERNS):
+    if any(re.search(pattern, lowered) for pattern in profile.strong_patterns):
         return ("High", "concrete problem language")
-    if any(re.search(pattern, lowered) for pattern in EXPECTATION_PATTERNS):
+    if any(re.search(pattern, lowered) for pattern in profile.expectation_patterns):
         return ("Medium", "reviewer expectation")
     return None
 
 
-def content_terms(text: str) -> set[str]:
-    words = set(re.findall(r"[a-z][a-z-]{2,}", text.lower()))
-    return words - STOPWORDS
+def content_terms(text: str, profile: KeywordProfile) -> set[str]:
+    words = set(re.findall(r"[^\W\d_][\w-]{2,}", text.lower(), re.UNICODE))
+    return words - profile.stopwords
 
 
-def related(left: Candidate, cue: Cue) -> bool:
-    left_terms = content_terms(" ".join(left.excerpts))
-    right_terms = content_terms(cue.text)
+def related(left: Candidate, cue: Cue, profile: KeywordProfile) -> bool:
+    left_terms = content_terms(" ".join(left.excerpts), profile)
+    right_terms = content_terms(cue.text, profile)
     latest_end = max(window["end"] for window in left.windows)
     return bool(left_terms & right_terms) and cue.start - latest_end <= 30
 
 
-def detect_candidates(cues: list[Cue], padding: float = 2.0) -> list[Candidate]:
+def detect_candidates(
+    cues: list[Cue],
+    padding: float = 2.0,
+    keyword_profile: str | Path | KeywordProfile | None = "en",
+) -> list[Candidate]:
+    profile = (
+        keyword_profile
+        if isinstance(keyword_profile, KeywordProfile)
+        else load_keyword_profile(keyword_profile)
+    )
+    if profile is None:
+        return []
     candidates: list[Candidate] = []
     for cue in cues:
-        kind = cue_kind(cue.text)
+        kind = cue_kind(cue.text, profile)
         if not kind:
             continue
         confidence, reason = kind
-        merge_target = next((item for item in candidates if related(item, cue)), None)
+        merge_target = next(
+            (item for item in candidates if related(item, cue, profile)), None
+        )
         source_range = f"{format_timestamp(cue.start)}–{format_timestamp(cue.end)}"
         window = {"start": max(0.0, cue.start - padding), "end": cue.end + padding}
         if merge_target:
@@ -318,7 +361,9 @@ def prepare(args: argparse.Namespace) -> int:
     (output / "transcript.md").write_text(
         render_transcript(transcript.name, cues), encoding="utf-8"
     )
-    candidates = detect_candidates(cues, args.padding)
+    keyword_profile = getattr(args, "keyword_profile", "en")
+    profile = load_keyword_profile(keyword_profile)
+    candidates = detect_candidates(cues, args.padding, profile)
     if video:
         duration = video_duration(video)
         for candidate in candidates:
@@ -333,6 +378,7 @@ def prepare(args: argparse.Namespace) -> int:
         "schema_version": 1,
         "source_transcript": str(transcript),
         "source_video": str(video) if video else None,
+        "keyword_profile": profile.name if profile else None,
         "candidates": [asdict(item) for item in candidates],
     }
     (output / "candidates.json").write_text(
@@ -361,6 +407,11 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--video", help="optional MP4/MOV recording")
     command.add_argument("--output", required=True, help="output directory")
     command.add_argument("--padding", type=float, default=2.0, help="seconds around cues")
+    command.add_argument(
+        "--keyword-profile",
+        default="en",
+        help="optional built-in profile (en/de), JSON profile path, or none",
+    )
     command.add_argument(
         "--frame-mode",
         choices=("single", "dense"),

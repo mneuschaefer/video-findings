@@ -1,0 +1,25 @@
+{
+  "name": "en",
+  "strong_patterns": [
+    "\\bnothing happens\\b",
+    "\\bno (?:visible )?response\\b",
+    "\\bdoes(?:n't| not) work\\b",
+    "\\b(?:error|broken|stuck|failed?)\\b",
+    "\\bcan(?:not|'t)\\b",
+    "\\b(?:not|isn't|is not) (?:very )?intuitive\\b",
+    "\\b(?:kind of an )?issue\\b",
+    "\\bconfus(?:ing|ed)\\b",
+    "\\bdoes(?:n't| not) make sense\\b"
+  ],
+  "expectation_patterns": [
+    "\\bi expected\\b",
+    "\\bi would expect\\b",
+    "\\bshould\\b"
+  ],
+  "stopwords": [
+    "again", "although", "back", "clicked", "click", "does", "from",
+    "happens", "have", "into", "nothing", "response", "still", "that",
+    "this", "visible", "with", "would", "expected", "expect", "there",
+    "take", "design"
+  ]
+}

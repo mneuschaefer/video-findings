@@ -20,9 +20,11 @@ the boundary between deterministic media processing and model interpretation.
 - Require the AI to review the complete timestamped transcript semantically in
   its source language. Keyword matches are optional leads only and must never
   define coverage or become findings without contextual AI review.
-- Unless the user requests another language, write final findings in the
-  dominant language of the recording/transcript while preserving direct quotes
-  and visible UI labels in their original language.
+- Resolve the report language from the current user instruction, known user
+  preference, language of the current request, and only then the dominant
+  transcript language. Keep transcript, report, and quote/UI language separate;
+  preserve direct quotes and visible labels in their original language unless
+  translation is requested.
 - Accept local QuickTime/macOS screen recordings and downloaded Teams recording
   files. Never fetch a Teams recording from a meeting service automatically.
 - Run `scripts/check-environment` before processing input. On macOS, offer

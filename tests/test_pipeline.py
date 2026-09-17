@@ -55,6 +55,38 @@ class PipelineTests(unittest.TestCase):
         candidate = MODULE.detect_candidates(cues)[0]
         self.assertEqual(candidate.confidence, "High")
 
+    def test_german_keyword_profile_is_an_optional_routing_aid(self):
+        cues = [MODULE.Cue(2.0, 4.0, "Hier reagiert die Schaltfläche nicht.")]
+        candidates = MODULE.detect_candidates(cues, keyword_profile="de")
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].confidence, "High")
+        self.assertEqual(MODULE.detect_candidates(cues, keyword_profile=None), [])
+
+    def test_explicit_report_language_overrides_german_transcript(self):
+        report_language = MODULE.select_report_language(
+            current_instruction="English",
+            known_user_preference="German",
+            request_language="German",
+            transcript_language="German",
+        )
+        self.assertEqual(report_language, "English")
+
+    def test_report_language_uses_user_context_before_transcript(self):
+        self.assertEqual(
+            MODULE.select_report_language(
+                known_user_preference="English",
+                request_language="German",
+                transcript_language="German",
+            ),
+            "English",
+        )
+        self.assertEqual(
+            MODULE.select_report_language(
+                request_language="German", transcript_language="English"
+            ),
+            "German",
+        )
+
     def test_demo_has_two_groups_and_merges_repeat(self):
         transcript = Path(__file__).parents[1] / "examples" / "sample-transcript.vtt"
         candidates = MODULE.detect_candidates(MODULE.parse_transcript(transcript))
@@ -195,22 +227,18 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(payload["latency_seconds"], 0.65)
         self.assertEqual(payload["stabilization_seconds"], 0.55)
 
-    def test_shell_scripts_have_valid_syntax(self):
+    def test_script_syntax_is_checked_from_shebang(self):
         root = Path(__file__).parents[1]
         scripts = list((root / "scripts").glob("*"))
         scripts += list((root / "scripts" / "lib").glob("*.sh"))
         for script in scripts:
-            if script.is_file() and "bash" in script.read_text(
-                encoding="utf-8"
-            ).splitlines()[0]:
+            if not script.is_file():
+                continue
+            first_line = script.read_text(encoding="utf-8").splitlines()[0]
+            if "bash" in first_line or first_line.endswith("/sh"):
                 subprocess.run(["bash", "-n", script], check=True)
-
-    def test_python_scripts_have_valid_syntax(self):
-        root = Path(__file__).parents[1]
-        subprocess.run(
-            [sys.executable, "-m", "py_compile", root / "scripts" / "measure-interval"],
-            check=True,
-        )
+            elif "python" in first_line:
+                subprocess.run([sys.executable, "-m", "py_compile", script], check=True)
 
     def test_setup_plans_one_recommended_model_and_allows_override(self):
         root = Path(__file__).parents[1]

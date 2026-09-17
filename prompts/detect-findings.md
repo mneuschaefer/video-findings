@@ -10,13 +10,18 @@ that a defect occurred.
 
 ## Output language
 
-Use an output language explicitly requested by the user. Otherwise, write
-finding titles, explanations, statuses, and decisions in the dominant language
-of the recording or transcript. If the recording switches languages, use the
-language of each relevant passage unless that would make the report confusing;
-in that case use the dominant language consistently. Preserve transcript quotes
-and visible UI labels in their original language unless the user asks for a
-translation.
+Resolve the report language in this order:
+
+1. the current user instruction;
+2. a known user language preference;
+3. the language of the current user request;
+4. the dominant transcript language as the final fallback.
+
+The transcript language describes the source; it does not override the user's
+report language. Preserve transcript quotes and visible UI labels in their
+original language unless the user asks for a translation. If the recording
+switches languages, preserve each quoted passage in its source language while
+keeping the report prose consistent.
 
 For each possible finding:
 

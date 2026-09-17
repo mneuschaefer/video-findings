@@ -8,7 +8,16 @@
     "schema_version": {"const": 1},
     "source_video": {"type": ["string", "null"]},
     "transcript": {"type": "string"},
-    "output_language": {"type": "string"},
+    "transcript_language": {"type": "string"},
+    "report_language": {"type": "string"},
+    "output_language": {
+      "type": "string",
+      "description": "Deprecated alias for report_language"
+    },
+    "quote_ui_language_policy": {
+      "type": "string",
+      "default": "preserve-original"
+    },
     "findings": {
       "type": "array",
       "items": {

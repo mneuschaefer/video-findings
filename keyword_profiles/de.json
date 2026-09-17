@@ -1,0 +1,24 @@
+{
+  "name": "de",
+  "strong_patterns": [
+    "\\bnichts passiert\\b",
+    "\\bkeine (?:sichtbare )?reaktion\\b",
+    "\\breagiert\\b[^.?!]{0,80}\\bnicht\\b",
+    "\\bfunktioniert nicht\\b",
+    "\\b(?:fehler|kaputt|hängt|fehlgeschlagen)\\b",
+    "\\bnicht (?:besonders |sehr )?intuitiv\\b",
+    "\\bproblem\\b",
+    "\\bverwirrend\\b",
+    "\\bergibt (?:keinen|nicht) sinn\\b"
+  ],
+  "expectation_patterns": [
+    "\\bich (?:hätte|habe) erwartet\\b",
+    "\\bich würde erwarten\\b",
+    "\\b(?:sollte|müsste)\\b"
+  ],
+  "stopwords": [
+    "aber", "also", "dann", "dass", "diese", "dieser", "funktioniert",
+    "hier", "immer", "nicht", "noch", "passiert", "reaktion", "schon",
+    "sollte", "wieder", "würde", "erwartet", "erwarten"
+  ]
+}
