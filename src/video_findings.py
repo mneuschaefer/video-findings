@@ -209,12 +209,12 @@ def render_report(source: str, candidates: list[Candidate]) -> str:
             f"### Human decision\n\n- [ ] Confirm as issue\n- [ ] Rewrite\n- [ ] Discard\n"
         )
     return (
-        "# Recorded review findings\n\n"
+        "# Heuristic transcript leads\n\n"
         f"**Source:** {source}  \n"
         f"**Generated:** {datetime.now(timezone.utc).isoformat()}  \n"
-        "**Status:** Draft — human review required\n\n"
+        "**Status:** Preparation only — semantic AI review and human review required\n\n"
         "## Summary\n\n"
-        f"{len(candidates)} transcript-led candidate group(s). These are leads, not verified defects.\n\n"
+        f"{len(candidates)} keyword-led candidate group(s). These are optional hints, not complete or verified findings.\n\n"
         "## Findings\n\n"
         + ("\n\n".join(blocks) if blocks else "No transcript-led candidates found.")
         + "\n\n## Evaluation notes\n\n"
@@ -229,6 +229,14 @@ def prepare(args: argparse.Namespace) -> int:
     video = Path(args.video).resolve() if args.video else None
     output.mkdir(parents=True, exist_ok=True)
     cues = parse_transcript(transcript)
+    cue_payload = {
+        "schema_version": 1,
+        "source_transcript": str(transcript),
+        "cues": [asdict(cue) for cue in cues],
+    }
+    (output / "transcript-cues.json").write_text(
+        json.dumps(cue_payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     candidates = detect_candidates(cues, args.padding)
     if video:
         duration = video_duration(video)
@@ -246,7 +254,10 @@ def prepare(args: argparse.Namespace) -> int:
     (output / "report.md").write_text(
         render_report(video.name if video else transcript.name, candidates), encoding="utf-8"
     )
-    print(f"Prepared {len(candidates)} candidate group(s) in {output}")
+    print(
+        f"Prepared {len(cues)} transcript cue(s) and "
+        f"{len(candidates)} heuristic candidate group(s) in {output}"
+    )
     return 0
 
 

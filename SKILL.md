@@ -30,10 +30,17 @@ enough.
    without explicit approval.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
-   candidate windows, frames, `candidates.json`, and a draft report.
-4. Read [prompts/detect-findings.md](prompts/detect-findings.md) before judging
-   transcript candidates. Treat heuristic candidates as leads, not findings.
-5. Inspect candidate frames and read
+   `transcript-cues.json`, optional keyword leads, frames for those leads, and a
+   preparation report.
+4. Read [prompts/detect-findings.md](prompts/detect-findings.md), then use the AI
+   to review **every cue in the complete `transcript-cues.json` semantically**.
+   Resolve vague descriptions from surrounding context. Keyword matches are
+   optional hints only; they are neither findings nor a coverage boundary.
+   Detect findings in any transcript language. Unless the user requested
+   another language, write the findings in the dominant transcript language.
+5. For AI-selected moments not covered by the heuristic frames, run
+   `scripts/extract-frames VIDEO START END OUTPUT_DIR SLUG`. Then inspect all
+   selected frames and read
    [prompts/verify-evidence.md](prompts/verify-evidence.md). If frames do not
    prove a claim, say so; never invent UI state between sampled frames.
 6. Write the final report using [templates/report.md](templates/report.md) and
@@ -51,8 +58,9 @@ alignment is unclear.
 - **Human decision:** remains open unless the user explicitly decides it.
 
 Use `Needs review` by default. Deduplicate repeated discussion of one issue but
-retain all supporting time ranges. Keep non-findings and missed visual-only
-issues visible in the evaluation notes when testing the workflow.
+retain all supporting time ranges. Never promote a keyword match without AI
+context review. Keep non-findings and missed visual-only issues visible in the
+evaluation notes when testing the workflow.
 
 ## Output contract
 

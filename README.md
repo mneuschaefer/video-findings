@@ -26,7 +26,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## The use case
 
-The included `0.1.1` analysis profile starts with narrated UI reviews. The
+The included `0.1.2` analysis profile starts with narrated UI reviews. The
 underlying method is broader: use transcript cues to locate moments whose
 meaning or evidence depends on the matching visual state.
 
@@ -74,6 +74,21 @@ flowchart LR
 
 This approach is faster, cheaper, more data-minimizing, and easier to audit
 than processing the entire recording visually.
+
+## Language-independent AI review
+
+The preparation script does **not** decide what the findings are. It preserves
+every timestamped transcript cue in `transcript-cues.json`. Simple keyword
+matching may add early leads, but wording in real reviews is often vague,
+indirect, or context-dependent—and keyword coverage is especially unreliable
+across languages.
+
+The agent must therefore read the complete cue manifest semantically, identify
+possible findings in any transcript language, and then inspect the matching
+visual windows. Unless the user asks for another output language, the final
+finding titles, explanations, statuses, and decisions use the dominant language
+of the recording or transcript. Direct quotes and visible UI labels remain in
+their original language.
 
 ## Dependencies on macOS
 
@@ -128,6 +143,7 @@ output/demo/
 ├── assets/
 │   └── finding-*.jpg
 ├── candidates.json
+├── transcript-cues.json
 └── report.md
 ```
 
@@ -142,8 +158,10 @@ With narration but without a separate transcript:
 ```
 
 The script verifies the input, prefers an already installed MacParakeet model,
-falls back to a ready local `whisper.cpp` setup, selects candidate intervals,
-and extracts evidence frames.
+falls back to a ready local `whisper.cpp` setup, preserves every timestamped
+cue, and creates optional keyword leads. The agent—not the keyword script—then
+reviews the complete transcript semantically and extracts any additional visual
+evidence required for the final findings.
 
 ## Analyze a downloaded Teams recording
 
@@ -216,7 +234,7 @@ Obsidian plugin, a cloud backend, or user accounts.
 
 ## Project status
 
-Version `0.1.1` is a portable macOS-oriented package and a testable V1
+Version `0.1.2` is a portable macOS-oriented package and a testable V1
 foundation with an initial UI-review profile. Deterministic preparation and
 local transcription are automated; nuanced visual verification remains an
 explicit agent or human task so uncertainty stays visible.

@@ -1,7 +1,19 @@
 # Detect transcript-led finding candidates
 
-Read the timestamped transcript as a search index, not as proof that a defect
-exists.
+Read the complete timestamped transcript, preferably `transcript-cues.json`, as
+a search index, not as proof that a defect exists. Detect findings semantically
+in any language. Never use the bundled keyword candidates as a coverage
+boundary: they are optional efficiency hints and may miss non-English wording.
+
+## Output language
+
+Use an output language explicitly requested by the user. Otherwise, write
+finding titles, explanations, statuses, and decisions in the dominant language
+of the recording or transcript. If the recording switches languages, use the
+language of each relevant passage unless that would make the report confusing;
+in that case use the dominant language consistently. Preserve transcript quotes
+and visible UI labels in their original language unless the user asks for a
+translation.
 
 For each possible finding:
 
@@ -16,4 +28,3 @@ For each possible finding:
    actionable usability concern.
 
 Return candidate findings only. Visual verification happens separately.
-

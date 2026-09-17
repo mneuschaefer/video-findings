@@ -10,6 +10,12 @@ the boundary between deterministic media processing and model interpretation.
 - Do not create external tickets or upload media without explicit approval.
 - Prefer an existing VTT/SRT transcript. Transcription is an optional adapter,
   not a core dependency.
+- Require the AI to review the complete timestamped transcript semantically in
+  its source language. Keyword matches are optional leads only and must never
+  define coverage or become findings without contextual AI review.
+- Unless the user requests another language, write final findings in the
+  dominant language of the recording/transcript while preserving direct quotes
+  and visible UI labels in their original language.
 - Accept local QuickTime/macOS screen recordings and downloaded Teams recording
   files. Never fetch a Teams recording from a meeting service automatically.
 - Run `scripts/check-environment` before processing input. On macOS, offer

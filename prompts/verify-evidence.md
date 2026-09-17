@@ -1,5 +1,9 @@
 # Verify candidate evidence
 
+Continue in the output language chosen during transcript detection. Preserve
+quoted speech and visible UI text in their original language unless a
+translation was explicitly requested.
+
 Inspect the beginning, middle, and end frames for each candidate window.
 
 - Report only visible UI facts: control state, message, page, overlay, layout,
@@ -15,4 +19,3 @@ Inspect the beginning, middle, and end frames for each candidate window.
 
 Classify confidence as High, Medium, or Low based on combined evidence, not the
 reviewer's certainty of tone.
-

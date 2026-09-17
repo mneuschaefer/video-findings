@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import os
 import subprocess
 import tempfile
@@ -65,6 +66,33 @@ class PipelineTests(unittest.TestCase):
         cues = [MODULE.Cue(0.25, 1.0, "Nothing happens")]
         candidate = MODULE.detect_candidates(cues, padding=2.0)[0]
         self.assertEqual(candidate.windows[0]["start"], 0.0)
+
+    def test_prepare_preserves_all_multilingual_cues(self):
+        content = (
+            "WEBVTT\n\n"
+            "00:00:01.000 --> 00:00:02.000\n"
+            "Hier reagiert die Schaltfläche nicht.\n\n"
+            "00:00:03.000 --> 00:00:04.000\n"
+            "ここでは画面が変わりません。\n\n"
+            "00:00:05.000 --> 00:00:06.000\n"
+            "هنا لا تتغير الشاشة.\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            transcript = root / "multilingual.vtt"
+            output = root / "output"
+            transcript.write_text(content, encoding="utf-8")
+            args = type(
+                "Args",
+                (),
+                {"transcript": str(transcript), "output": str(output), "video": None, "padding": 2.0},
+            )()
+            MODULE.prepare(args)
+            payload = json.loads((output / "transcript-cues.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(payload["cues"]), 3)
+        self.assertEqual(payload["cues"][0]["text"], "Hier reagiert die Schaltfläche nicht.")
+        self.assertEqual(payload["cues"][1]["text"], "ここでは画面が変わりません。")
+        self.assertEqual(payload["cues"][2]["text"], "هنا لا تتغير الشاشة.")
 
     def test_user_facing_scripts_are_executable(self):
         scripts = Path(__file__).parents[1] / "scripts"

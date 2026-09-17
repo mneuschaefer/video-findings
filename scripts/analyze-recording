@@ -58,4 +58,6 @@ python3 "$project_dir/src/video_findings.py" prepare \
   --transcript "$transcript" \
   --output "$output"
 
-printf '\nDraft ready: %s/report.md\n' "$output"
+printf '\nPreparation ready: %s/transcript-cues.json\n' "$output"
+printf 'Heuristic leads: %s/report.md\n' "$output"
+printf 'An agent must review all transcript cues in any source language, verify the visual evidence, and write the final findings in the source language unless another output language was requested.\n'
