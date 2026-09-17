@@ -190,6 +190,24 @@ To use another model, change the read-only plan before approving it:
 | `whisper.cpp` | Fallback when MacParakeet is unavailable | Installed only if no ready backend exists or explicitly selected |
 | multilingual Whisper model | One fallback model | Defaults to `base` (142 MiB); another model can be selected before installation |
 
+### Official downloads and documentation
+
+- [MacParakeet](https://macparakeet.com/) — install this first when you want to
+  use the recommended Parakeet backend. Its
+  [source and installation options](https://github.com/moona3k/macparakeet)
+  are also available on GitHub.
+- [Homebrew](https://brew.sh/) — must already be installed if the setup needs
+  to add missing command-line dependencies.
+- [FFmpeg](https://ffmpeg.org/download.html) — required for video and audio
+  processing. The setup installs the
+  [Homebrew FFmpeg formula](https://formulae.brew.sh/formula/ffmpeg) when it is
+  missing.
+- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — the transcription
+  fallback when MacParakeet is unavailable. The setup installs its Homebrew
+  formula and one selected multilingual model only when needed.
+- [FluidAudio ASR model guide](https://github.com/FluidInference/FluidAudio/blob/main/Documentation/Models.md)
+  — current Parakeet-compatible model information.
+
 The Python core uses only the standard library. The setup script does not
 modify shell startup files, request administrator privileges, or upload media.
 Before it changes the Mac, it reports the chosen transcription backend and
