@@ -1,6 +1,12 @@
 # Video Findings
 
-**Find useful moments in narrated videos and turn them into visual findings.**
+Reviewing a complex interface is often easiest by recording the screen and
+talking through what you notice, either alone or with a group. The recording
+captures the context, but the useful observations still need to be found and
+turned into clear findings. The Video Findings skill breaks the recording into
+reviewable findings by connecting spoken comments with the relevant moments on
+screen. Each finding includes a representative screenshot and the exact point
+in the original video.
 
 > **Platform support:** The current release supports macOS and is tested there.
 > The Python core and FFmpeg media processing are portable, but setup, local
