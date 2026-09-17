@@ -36,29 +36,29 @@ enough.
    without explicit approval.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
-   `transcript.md`, `transcript-cues.json`, an archived source VTT/SRT, optional
-   optional keyword leads, a compact numeric `motion-1s.tsv`, one initial
-   screenshot per lead, and a preparation report. Use `--keyword-profile de`,
-   `en`, a compatible JSON profile path, or `none` when useful. Profiles only
-   improve routing; they never restrict the complete semantic review. The
-   motion index creates no screenshots or clips and is a routing aid, not proof
-   of a defect.
+   source artifacts under `material/` and one initial `Video Findings.md` at
+   the output root. Use `--keyword-profile de`, `en`, a compatible JSON profile
+   path, or `none` when useful. Profiles only improve routing; they never
+   restrict the complete semantic review. The motion index creates no
+   screenshots or clips and is a routing aid, not proof of a defect.
    These transcript artifacts are the reusable source from which reports can be
    regenerated later. The default `single` frame mode keeps the review compact;
    use `--frame-mode dense` only when the user explicitly asks for many samples
    or when a timing-dependent claim requires diagnosis.
 4. Read [prompts/detect-findings.md](prompts/detect-findings.md), then use the AI
-   to review **every cue in the complete `transcript-cues.json` semantically**.
+   to review **every cue in the complete
+   `material/transcript-cues.json` semantically**.
    Capture every described bug or actionable finding, including claims that
    visual evidence cannot fully confirm, and mark their evidentiary status.
    Stay close to the speaker's wording. Never invent a product name, feature,
    user role, requirement, severity, root cause, or expected behavior when the
    recording does not establish it. Keyword matches are optional hints only;
    they are neither findings nor a coverage boundary. Detect findings in any
-   transcript language. Resolve the report language in this order: the current
-   user instruction, a known user preference, the language of the current user
-   request, and only then the dominant transcript language. Never let the
-   transcript override a higher-priority user-language signal.
+   transcript language. Use a report language explicitly requested in the
+   current prompt; otherwise use the language of that prompt. Only when the
+   prompt language is genuinely unclear may a known user preference and then
+   the dominant transcript language act as fallbacks. Never let the transcript
+   override the language of a clear current prompt.
 5. For each AI-selected finding, choose one timestamp that shows the most
    informative visible state and run
    `scripts/extract-frame VIDEO TIMESTAMP OUTPUT_JPG`. If the first image is
@@ -77,13 +77,16 @@ enough.
    me the clip for finding 3 and put it into my ticket format" are sufficient
    selection. Use `scripts/measure-interval` after inspecting source-timed
    evidence when latency or stabilization must be quantified.
-6. Write a detailed final `report.md` using
+6. Unless the prompt requests another name, layout, or artifact set, replace
+   the preparation dossier with one detailed root-level `Video Findings.md`
+   using
    [templates/report.md](templates/report.md) and
-   [templates/finding.md](templates/finding.md). Also write `findings.json`
+   [templates/finding.md](templates/finding.md). Write `material/findings.json`
    according to [templates/findings.schema.json](templates/findings.schema.json)
-   so other tools can reuse the results. Link the full `transcript.md` from the
-   report. Derived reports may be regenerated from `transcript-cues.json` and
-   the original recording without retranscribing the source.
+   and keep transcripts, machine-readable data, motion indexes, and images in
+   `material/`. Link the full transcript from the dossier. Derived reports may
+   be regenerated from the material folder and original recording without
+   retranscribing the source.
 
 Read [docs/setup-macos.md](docs/setup-macos.md) when installing on a new Mac and
 [docs/input-formats.md](docs/input-formats.md) when input origin or transcript
@@ -94,7 +97,9 @@ alignment is unclear.
 Keep three language concepts separate:
 
 - **Transcript language:** the language spoken in the source recording.
-- **Report language:** selected from the user-context priority above.
+- **Report language:** an explicit current instruction, otherwise the language
+  of the current prompt; older preferences and transcript language are only
+  fallbacks when the prompt is unclear.
 - **Quote/UI language:** direct quotes and visible labels remain in their
   original language unless the user requests translation.
 
@@ -111,20 +116,34 @@ retain all supporting time ranges. Never promote a keyword match without AI
 context review. Keep non-findings and missed visual-only issues visible in the
 evaluation notes when testing the workflow.
 
-## Output contract
+## Default dossier contract
 
-The standard output directory contains:
+Treat this as a default, not a restriction. Follow any output language, file
+name, format, or folder structure requested in the current prompt. Otherwise,
+the output root contains exactly one user-facing file:
 
-- `transcript-source.vtt` or `transcript-source.srt`: preserved timestamped
-  source transcript;
-- `transcript.md`: complete, readable transcript with every cue and timestamp;
-- `transcript-cues.json`: complete machine-readable transcript source;
-- `motion-1s.tsv`: compact whole-video routing index without extra images;
-- `motion.tsv` and `motion-summary.json`: detailed numeric motion data;
-- `candidates.json`: optional deterministic leads;
-- `report.md`: detailed human-readable findings report;
-- `findings.json`: reusable structured findings;
-- `assets/`: exactly one representative image per final finding by default.
+- `Video Findings.md`: the complete, scrollable findings dossier;
+- `material/`: every supporting artifact, including the complete transcript,
+  cue JSON, structured findings, motion indexes, and exactly one representative
+  image per final finding by default.
+
+Avoid additional root-level files. A selected dynamic evidence package may use
+one additional folder below `material/`, but keep navigation shallow unless the
+user requests another structure.
+
+In the dossier, begin every finding heading with its exact timestamp, followed
+by a concise title. Give each finding one or two substantive paragraphs that
+stay close to what was said and what is visibly supported. The prose must be
+detailed enough to create later tickets or other artifacts, while naming any
+uncertainty instead of filling missing product context.
+
+Place the representative image directly inside its finding. Follow it with a
+caption containing the image timestamp and a short, concrete description of
+what is visible. A bare image path or unexplained screenshot is not useful
+evidence. Link the exact point in the original video. Direct quotes are
+optional in the dossier because the full transcript is linked; whenever quotes
+or visible UI text are included, preserve their original language unless the
+user asks for translation.
 
 Every finding references the original video, gives the exact timestamp from
 which a reviewer can continue watching, and includes the smallest relevant

@@ -20,11 +20,14 @@ the boundary between deterministic media processing and model interpretation.
 - Require the AI to review the complete timestamped transcript semantically in
   its source language. Keyword matches are optional leads only and must never
   define coverage or become findings without contextual AI review.
-- Resolve the report language from the current user instruction, known user
-  preference, language of the current request, and only then the dominant
-  transcript language. Keep transcript, report, and quote/UI language separate;
-  preserve direct quotes and visible labels in their original language unless
-  translation is requested.
+- Use an explicitly requested report language; otherwise use the language of
+  the current prompt. Only when that prompt is unclear may a known preference
+  and then transcript language act as fallbacks. Preserve direct quotes and
+  visible labels in their original language unless translation is requested.
+- Unless the prompt requests another layout, keep exactly one user-facing
+  `Video Findings.md` at the output root and every supporting artifact under
+  `material/`. Each finding starts with its timestamp, contains detailed prose,
+  embeds one image, and captions that image with timestamp and visible state.
 - Accept local QuickTime/macOS screen recordings and downloaded Teams recording
   files. Never fetch a Teams recording from a meeting service automatically.
 - Run `scripts/check-environment` before processing input. On macOS, offer

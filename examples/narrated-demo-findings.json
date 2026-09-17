@@ -18,6 +18,7 @@
         {"start": 46.72, "end": 53.36}
       ],
       "reported_issue": "The reviewer says that pressing Continue produces no visible response and that a second attempt also does not work.",
+      "detailed_description": "The reviewer reports that Continue produces no visible response in two separate attempts. The sampled states remain on checkout step 2 of 3 with standard delivery selected and no visible error or next-step state. Because the recording has no visible click indicator, the evidence supports the unchanged interface state but cannot establish whether the input event was registered.",
       "observation": "The checkout remains on step 2 of 3 in both sampled states. The recording has no visible click indicator.",
       "reviewer_expectation": "Either the next step or a clear error message.",
       "transcript_evidence": [
@@ -31,6 +32,8 @@
       ],
       "interpretation": "Possible interaction-feedback or checkout-navigation failure.",
       "representative_image": "assets/continue-no-response.jpg",
+      "image_timestamp": 27.12,
+      "image_caption": "Checkout remains on step 2 of 3 with standard delivery selected and Continue still visible.",
       "original_video_timestamp": 22.72,
       "optional_clip": null
     },
@@ -45,6 +48,7 @@
         {"start": 68.72, "end": 78.56}
       ],
       "reported_issue": "The reviewer says that the discount message overlaps the total and makes the final amount difficult to read.",
+      "detailed_description": "The discount confirmation is rendered across the Total row and visibly covers both its label and amount. This directly supports the reported readability problem, while the intended placement, duration, responsible component, and root cause remain unstated.",
       "observation": "The Discount applied: SAVE10 message visibly covers the total label and amount.",
       "reviewer_expectation": "The final amount should remain readable.",
       "transcript_evidence": [
@@ -57,6 +61,8 @@
       ],
       "interpretation": "Layout and readability defect in the order summary.",
       "representative_image": "assets/discount-overlap.jpg",
+      "image_timestamp": 73.64,
+      "image_caption": "The Discount applied: SAVE10 confirmation covers the Total label and final amount.",
       "original_video_timestamp": 68.72,
       "optional_clip": null
     }

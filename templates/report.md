@@ -1,37 +1,29 @@
-<!-- Language policy:
-- Transcript language: the source language; it does not determine the report.
-- Report language priority: current instruction, known user preference,
-  current request language, then dominant transcript language as fallback.
+<!-- Default dossier. Follow a different output name, format, or structure when
+the current prompt requests one.
+
+Language policy:
+- Report language: explicit current instruction, otherwise current prompt.
+- Transcript language: source language; fallback only when prompt is unclear.
 - Quote/UI language: preserve original wording unless translation is requested.
 -->
 
-# Recorded review findings
+# Video Findings
 
-**Source:** {{ source }}  
+**Source:** {{ source }}
+
 **Original video:** {{ original_video_link }}
 
-**Generated:** {{ generated_at }}  
-**Status:** Draft — human review required
+**Generated:** {{ generated_at }}
 
-## Summary
+**Status:** Draft — human review required
 
 {{ summary }}
 
-## Findings overview
-
-{{ findings_overview }}
-
-## Findings
-
 {{ findings }}
 
-## Full transcript
+## Source material
 
-[Open the complete timestamped transcript]({{ transcript_link }})
+[Open the complete timestamped transcript](material/transcript.md)
 
-The transcript and `transcript-cues.json` can be used to regenerate or reformat
-the findings without transcribing the recording again.
-
-## Evaluation notes
-
-{{ evaluation_notes }}
+The transcript and machine-readable files under `material/` can regenerate or
+reformat this dossier without transcribing the recording again.

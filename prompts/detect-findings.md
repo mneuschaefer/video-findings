@@ -1,6 +1,7 @@
 # Detect transcript-led finding candidates
 
-Read the complete timestamped transcript, preferably `transcript-cues.json`, as
+Read the complete timestamped transcript, preferably
+`material/transcript-cues.json`, as
 a search index, not as proof that a defect exists. Detect findings semantically
 in any language. Never use the bundled keyword candidates as a coverage
 boundary: they are optional efficiency hints and may miss non-English wording.
@@ -13,8 +14,8 @@ that a defect occurred.
 Resolve the report language in this order:
 
 1. the current user instruction;
-2. a known user language preference;
-3. the language of the current user request;
+2. the language of the current prompt/request;
+3. a known user language preference only when the prompt language is unclear;
 4. the dominant transcript language as the final fallback.
 
 The transcript language describes the source; it does not override the user's
@@ -22,6 +23,10 @@ report language. Preserve transcript quotes and visible UI labels in their
 original language unless the user asks for a translation. If the recording
 switches languages, preserve each quoted passage in its source language while
 keeping the report prose consistent.
+
+The user may override the dossier name, structure, format, or artifact set in
+the current prompt. Otherwise produce the default single-file dossier described
+in `SKILL.md`.
 
 For each possible finding:
 

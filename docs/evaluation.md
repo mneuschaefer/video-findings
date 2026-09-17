@@ -12,7 +12,7 @@ The 26-second demo transcript contains six deliberately different situations.
 | Harmless positive remark | Exclude |
 
 The deterministic keyword pass is evaluated only as an efficiency aid. Recall
-belongs to the AI review of the complete `transcript-cues.json`, including
+belongs to the AI review of the complete `material/transcript-cues.json`, including
 non-English and indirect descriptions. Success is producing a small,
 inspectable set of AI-reviewed leads while making false positives, misses, and
 evidence limits visible.

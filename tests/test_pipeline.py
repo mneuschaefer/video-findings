@@ -71,14 +71,14 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertEqual(report_language, "English")
 
-    def test_report_language_uses_user_context_before_transcript(self):
+    def test_prompt_language_precedes_known_preference_and_transcript(self):
         self.assertEqual(
             MODULE.select_report_language(
                 known_user_preference="English",
                 request_language="German",
                 transcript_language="German",
             ),
-            "English",
+            "German",
         )
         self.assertEqual(
             MODULE.select_report_language(
@@ -122,9 +122,11 @@ class PipelineTests(unittest.TestCase):
                 {"transcript": str(transcript), "output": str(output), "video": None, "padding": 2.0},
             )()
             MODULE.prepare(args)
-            payload = json.loads((output / "transcript-cues.json").read_text(encoding="utf-8"))
-            readable = (output / "transcript.md").read_text(encoding="utf-8")
-            preserved_exists = (output / "transcript-source.vtt").is_file()
+            payload = json.loads(
+                (output / "material" / "transcript-cues.json").read_text(encoding="utf-8")
+            )
+            readable = (output / "material" / "transcript.md").read_text(encoding="utf-8")
+            preserved_exists = (output / "material" / "transcript-source.vtt").is_file()
         self.assertEqual(len(payload["cues"]), 3)
         self.assertEqual(payload["cues"][0]["text"], "Hier reagiert die Schaltfläche nicht.")
         self.assertEqual(payload["cues"][1]["text"], "ここでは画面が変わりません。")
@@ -155,7 +157,7 @@ class PipelineTests(unittest.TestCase):
             MODULE.extract_frames(
                 Path("video.mp4"), Path(directory), candidate, 20.0, "single"
             )
-        self.assertEqual(candidate.frames, ["assets/finding-001.jpg"])
+        self.assertEqual(candidate.frames, ["material/finding-001.jpg"])
         run.assert_called_once()
 
     def test_dense_frame_mode_remains_available(self):
@@ -180,14 +182,42 @@ class PipelineTests(unittest.TestCase):
             confidence="High",
             reason="test",
             windows=[{"start": 22.72, "end": 31.52}],
-            frames=["assets/finding-001.jpg"],
+            frames=["material/finding-001.jpg"],
         )
         report = MODULE.render_report(
             "review.mp4", [candidate], "../../review.mp4"
         )
         self.assertIn("../../review.mp4#t=22.720", report)
         self.assertIn("continue from 00:00:22.720", report)
-        self.assertIn("Representative visual evidence", report)
+        self.assertIn("## 00:00:22.720 — Candidate finding 1", report)
+        self.assertIn("*Image evidence · 00:00:27.120 —", report)
+
+    def test_default_output_root_contains_one_dossier_and_material_folder(self):
+        content = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nNothing happens.\n"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            transcript = root / "sample.vtt"
+            output = root / "output"
+            transcript.write_text(content, encoding="utf-8")
+            args = type(
+                "Args",
+                (),
+                {
+                    "transcript": str(transcript),
+                    "output": str(output),
+                    "video": None,
+                    "padding": 2.0,
+                    "keyword_profile": "en",
+                },
+            )()
+            MODULE.prepare(args)
+            root_entries = sorted(path.name for path in output.iterdir())
+            material_entries = sorted(path.name for path in (output / "material").iterdir())
+        self.assertEqual(root_entries, ["Video Findings.md", "material"])
+        self.assertIn("candidates.json", material_entries)
+        self.assertIn("transcript-cues.json", material_entries)
+        self.assertIn("transcript-source.vtt", material_entries)
+        self.assertIn("transcript.md", material_entries)
 
     def test_user_facing_scripts_are_executable(self):
         scripts = Path(__file__).parents[1] / "scripts"

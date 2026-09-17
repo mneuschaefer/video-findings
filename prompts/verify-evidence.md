@@ -35,5 +35,11 @@ For every dynamic finding, include a simple follow-up action such as:
 The user may request a selected finding with or without audio. Extract only the
 requested interval and keep all other findings in sparse overview form.
 
+For the default dossier, keep one representative image directly under the
+finding prose. Add a caption with the exact image timestamp and a concrete
+description of what is visible. Do not present an unexplained screenshot as
+evidence. Keep direct quotes and visible UI text in their original language
+unless the user requests translation.
+
 Classify confidence as High, Medium, or Low based on combined evidence, not the
 reviewer's certainty of tone.

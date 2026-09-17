@@ -3,27 +3,33 @@
 The first pass creates a sparse overview and preserves enough source material
 to regenerate later reports without retranscribing the recording.
 
-`findings.json` keeps `transcript_language` and `report_language` separate.
-The report language follows the current user instruction, known preference,
-current request language, and only then the transcript language. Direct quotes
-and visible UI labels preserve their original language unless translation is
-requested.
+`material/findings.json` keeps `transcript_language` and `report_language`
+separate. An explicit language request wins; otherwise the report uses the
+language of the current prompt. Direct quotes and visible UI labels preserve
+their original language unless translation is requested.
+
+The user may request another output name, format, or folder structure. Without
+such an override, the output root contains only `Video Findings.md` and the
+`material/` folder.
 
 | Artifact | Purpose |
 |---|---|
-| `transcript-source.vtt` or `.srt` | Preserved timestamped source transcript |
-| `transcript.md` | Complete readable transcript with timestamps and speakers when available |
-| `transcript-cues.json` | Complete machine-readable transcript source |
-| `candidates.json` | Optional deterministic leads for AI review |
-| `motion-1s.tsv` | Compact numeric whole-video motion index for routing |
-| `motion.tsv` | Detailed motion values for selected inspection windows |
-| `report.md` | Detailed human-readable report, close to the spoken claims |
-| `findings.json` | Structured findings for regeneration and conversion |
-| `assets/` | One representative evidence image per final finding by default |
+| `Video Findings.md` | One scrollable, detailed, human-readable dossier |
+| `material/transcript-source.vtt` or `.srt` | Preserved timestamped source transcript |
+| `material/transcript.md` | Complete readable transcript with timestamps and speakers when available |
+| `material/transcript-cues.json` | Complete machine-readable transcript source |
+| `material/candidates.json` | Optional deterministic leads for AI review |
+| `material/motion-1s.tsv` | Compact numeric whole-video motion index for routing |
+| `material/motion.tsv` | Detailed motion values for selected inspection windows |
+| `material/findings.json` | Structured findings for regeneration and conversion |
+| `material/finding-*.jpg` | One representative evidence image per final finding by default |
 
 The report lists every described bug or actionable finding and distinguishes
 reported behavior from visible verification. Unknown product names,
 requirements, roles, severity, causes, or intended behavior stay unknown.
+Every finding heading begins with its timestamp. One or two detailed paragraphs
+provide enough context for later tickets, followed by the representative image
+and a caption stating the image timestamp and visible state.
 
 Each finding has an `evidence_need` value:
 
@@ -43,7 +49,7 @@ scripts/extract-clip \
   --video recording.mov \
   --start 00:01:08.720 \
   --end 00:01:18.560 \
-  --output output/finding-003.mp4
+  --output output/material/finding-003.mp4
 ```
 
 Add `--no-audio` for a silent clip. The selected finding and clip can then be

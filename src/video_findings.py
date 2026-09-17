@@ -21,6 +21,8 @@ TIMESTAMP_RE = re.compile(
 )
 VTT_SPEAKER_RE = re.compile(r"<v(?:\.[^ >]+)?\s+([^>]+)>", re.IGNORECASE)
 KEYWORD_PROFILE_DIR = Path(__file__).parents[1] / "keyword_profiles"
+DEFAULT_REPORT_NAME = "Video Findings.md"
+DEFAULT_MATERIAL_DIR = "material"
 
 
 @dataclass
@@ -59,8 +61,8 @@ def select_report_language(
     """Resolve report language without treating transcript language as user intent."""
     for value in (
         current_instruction,
-        known_user_preference,
         request_language,
+        known_user_preference,
         transcript_language,
     ):
         if value and value.strip():
@@ -216,7 +218,7 @@ def extract_frames(
     duration: float,
     frame_mode: str = "single",
 ) -> None:
-    frame_dir = output / "assets"
+    frame_dir = output / DEFAULT_MATERIAL_DIR
     frame_dir.mkdir(parents=True, exist_ok=True)
     safe_windows: list[dict[str, float]] = []
     for window in candidate.windows:
@@ -239,7 +241,7 @@ def extract_frames(
             ],
             check=True,
         )
-        candidate.frames.append(f"assets/{filename}")
+        candidate.frames.append(f"{DEFAULT_MATERIAL_DIR}/{filename}")
         return
 
     for window_number, window in enumerate(safe_windows, 1):
@@ -261,7 +263,7 @@ def extract_frames(
                 ],
                 check=True,
             )
-            candidate.frames.append(f"assets/{filename}")
+            candidate.frames.append(f"{DEFAULT_MATERIAL_DIR}/{filename}")
 
 
 def render_report(
@@ -278,6 +280,15 @@ def render_report(
             for window in candidate.windows
         )
         watch_from = min(window["start"] for window in candidate.windows)
+        heading_timestamp = (
+            candidate.source_ranges[0].split("–", 1)[0]
+            if candidate.source_ranges
+            else format_timestamp(watch_from)
+        )
+        representative_time = (
+            max(candidate.windows, key=lambda item: item["end"] - item["start"])["start"]
+            + max(candidate.windows, key=lambda item: item["end"] - item["start"])["end"]
+        ) / 2
         if source_link:
             video_reference = (
                 f"[Open the original video]({source_link}#t={watch_from:.3f}) — "
@@ -285,27 +296,28 @@ def render_report(
             )
         else:
             video_reference = "No source video supplied."
-        evidence_heading = (
-            "Representative visual evidence"
-            if len(candidate.frames) <= 1
-            else "Visual evidence samples"
+        image_caption = (
+            f"*Image evidence · {format_timestamp(representative_time)} — "
+            "Representative frame for this unverified candidate; inspect the "
+            "source interval before publishing.*"
         )
         blocks.append(
-            f"## {number}. Candidate finding\n\n"
+            f"## {heading_timestamp} — Candidate finding {number}\n\n"
             f"**Status:** Needs review  \n"
             f"**Confidence:** {candidate.confidence}  \n"
             f"**Candidate windows:** {windows}  \n"
             f"**Source ranges:** {', '.join(candidate.source_ranges)}\n\n"
-            f"### Observation\n\nTo be verified against the recording.\n\n"
-            f"### Reviewer expectation\n\nTo be separated from observed behavior.\n\n"
-            f"### Transcript evidence\n\n> {quote}\n\n"
-            f"### {evidence_heading}\n\n{images or 'No video supplied.'}\n\n"
-            f"### Original video\n\n{video_reference}\n\n"
-            f"### Suggested classification\n\n{candidate.reason}; interpretation pending.\n\n"
-            f"### Human decision\n\n- [ ] Confirm as issue\n- [ ] Rewrite\n- [ ] Discard\n"
+            f"{video_reference}\n\n"
+            "The transcript suggests a possible finding in this interval. The "
+            "reported behavior, visible state, and reviewer expectation still "
+            "need semantic and visual review before this becomes a final finding.\n\n"
+            f"**Transcript context:** {quote}\n\n"
+            f"{images or 'No video supplied.'}\n\n"
+            f"{image_caption if images else ''}\n\n"
+            f"**Evidence boundary:** {candidate.reason}; interpretation pending.\n"
         )
     return (
-        "# Heuristic transcript leads\n\n"
+        "# Video Findings\n\n"
         f"**Source:** {source}  \n"
         f"**Generated:** {datetime.now(timezone.utc).isoformat()}  \n"
         "**Status:** Preparation only — semantic AI review and human review required\n\n"
@@ -345,8 +357,10 @@ def prepare(args: argparse.Namespace) -> int:
     output = Path(args.output).resolve()
     video = Path(args.video).resolve() if args.video else None
     output.mkdir(parents=True, exist_ok=True)
+    material = output / DEFAULT_MATERIAL_DIR
+    material.mkdir(parents=True, exist_ok=True)
     cues = parse_transcript(transcript)
-    transcript_copy = output / f"transcript-source{transcript.suffix.lower()}"
+    transcript_copy = material / f"transcript-source{transcript.suffix.lower()}"
     if transcript != transcript_copy:
         shutil.copy2(transcript, transcript_copy)
     cue_payload = {
@@ -355,10 +369,10 @@ def prepare(args: argparse.Namespace) -> int:
         "source_transcript_file": transcript_copy.name,
         "cues": [asdict(cue) for cue in cues],
     }
-    (output / "transcript-cues.json").write_text(
+    (material / "transcript-cues.json").write_text(
         json.dumps(cue_payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    (output / "transcript.md").write_text(
+    (material / "transcript.md").write_text(
         render_transcript(transcript.name, cues), encoding="utf-8"
     )
     keyword_profile = getattr(args, "keyword_profile", "en")
@@ -381,10 +395,10 @@ def prepare(args: argparse.Namespace) -> int:
         "keyword_profile": profile.name if profile else None,
         "candidates": [asdict(item) for item in candidates],
     }
-    (output / "candidates.json").write_text(
+    (material / "candidates.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    (output / "report.md").write_text(
+    (output / DEFAULT_REPORT_NAME).write_text(
         render_report(
             video.name if video else transcript.name,
             candidates,

@@ -57,7 +57,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-Version `0.2.1` works with narrated recordings in which spoken content only
+Version `0.3.0` works with narrated recordings in which spoken content only
 makes sense together with the matching image or video segment. UI reviews are
 the included tested example, not a restriction on how the skill can be used.
 
@@ -112,16 +112,16 @@ processing cost and leaves a clearer audit trail.
 ## AI review across languages
 
 The preparation script does not decide what counts as a finding. It writes
-every timestamped transcript cue to `transcript-cues.json`. Keyword matches
+every timestamped transcript cue to `material/transcript-cues.json`. Keyword matches
 can suggest where to look, but real reviews often describe problems vaguely or
 indirectly. Keywords alone cannot provide reliable coverage across languages.
 
 The agent reads the complete cue manifest, identifies possible findings in any
-transcript language, and inspects the matching video windows. Report language
-follows the current instruction first, then a known user preference, then the
-language of the current request. The dominant transcript language is only the
-fallback. Direct quotes and visible UI labels stay in their original language
-unless the user requests translation.
+transcript language, and inspects the matching video windows. An explicitly
+requested report language wins; otherwise the report uses the language of the
+current prompt. A known preference and the transcript language are fallbacks
+only when the prompt language is unclear. Direct quotes and visible UI labels
+stay in their original language unless the user requests translation.
 
 These are deliberately separate: transcript language describes the source,
 report language describes the deliverable, and quote/UI language preserves the
@@ -221,7 +221,7 @@ for other available models.
 ```bash
 make test
 make demo
-open output/demo/report.md
+open "output/demo/Video Findings.md"
 ```
 
 The demo creates a synthetic recording locally and reads the supplied VTT. It
@@ -230,19 +230,19 @@ default, it writes one initial screenshot for each candidate:
 
 ```text
 output/demo/
-├── assets/
-│   └── finding-*.jpg
-├── candidates.json
-├── motion-1s.tsv
-├── motion.tsv
-├── motion-summary.json
-├── transcript-source.vtt
-├── transcript-cues.json
-├── transcript.md
-└── report.md
+├── Video Findings.md
+└── material/
+    ├── candidates.json
+    ├── finding-*.jpg
+    ├── motion-1s.tsv
+    ├── motion.tsv
+    ├── motion-summary.json
+    ├── transcript-source.vtt
+    ├── transcript-cues.json
+    └── transcript.md
 ```
 
-The final AI-reviewed output also includes `findings.json`. The complete
+The final AI-reviewed output also includes `material/findings.json`. The complete
 timestamped transcript is preserved so reports, summaries, tickets, or other
 formats can be generated again without retranscribing the recording. See
 [`docs/output-artifacts.md`](docs/output-artifacts.md) for the complete artifact
@@ -265,6 +265,14 @@ complete transcript for meaning and collects the visual evidence for each
 finding. The keyword script does not make that decision. Each final finding
 normally contains one representative screenshot, a link to the original video,
 and the exact timestamp from which to continue watching.
+
+Unless the current prompt asks for another name or structure, the output root
+contains only `Video Findings.md` and the `material/` folder. The dossier is a
+single scrollable document. Every finding heading starts with its timestamp,
+uses one or two detailed paragraphs, embeds its representative image, and
+captions that image with the exact image time and a description of the visible
+state. Transcripts, JSON, motion data, and other working files stay under
+`material/`. The user can override any of these defaults in the prompt.
 
 The first pass stays sparse. A compact numeric movement index helps route
 timing-dependent findings but creates no extra images or clips. Such findings
@@ -317,7 +325,7 @@ video-findings/
 └── tests/                    # Parser, Teams VTT, detection, packaging checks
 ```
 
-The preserved transcript and `findings.json` are the stable boundaries.
+The preserved transcript and `material/findings.json` are the stable boundaries.
 Transcription tools, agents, evidence modes, and future exporters can change
 without requiring another transcription pass.
 
@@ -352,7 +360,7 @@ accounts.
 
 ## Project status
 
-Version `0.2.1` is a portable, testable foundation for macOS. UI reviews are
+Version `0.3.0` is a portable, testable foundation for macOS. UI reviews are
 the included tested example. It automates deterministic preparation and local
 transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.

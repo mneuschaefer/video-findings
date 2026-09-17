@@ -30,8 +30,13 @@
           "evidence_need",
           "time_ranges",
           "reported_issue",
+          "detailed_description",
           "transcript_evidence",
-          "unknown_context"
+          "unknown_context",
+          "representative_image",
+          "image_timestamp",
+          "image_caption",
+          "original_video_timestamp"
         ],
         "properties": {
           "id": {"type": "string"},
@@ -55,6 +60,10 @@
             }
           },
           "reported_issue": {"type": "string"},
+          "detailed_description": {
+            "type": "string",
+            "description": "One or two detailed dossier paragraphs grounded in reported and visible evidence"
+          },
           "observation": {"type": ["string", "null"]},
           "reviewer_expectation": {"type": ["string", "null"]},
           "transcript_evidence": {
@@ -67,6 +76,11 @@
           },
           "interpretation": {"type": ["string", "null"]},
           "representative_image": {"type": ["string", "null"]},
+          "image_timestamp": {"type": "number", "minimum": 0},
+          "image_caption": {
+            "type": "string",
+            "description": "Short concrete description of what is visible in the representative image"
+          },
           "original_video_timestamp": {"type": "number", "minimum": 0},
           "optional_clip": {"type": ["string", "null"]}
         },

@@ -1,51 +1,19 @@
-<!-- Language policy:
-- Transcript language: the source language; it does not determine the report.
-- Report language priority: current instruction, known user preference,
-  current request language, then dominant transcript language as fallback.
-- Quote/UI language: preserve original wording unless translation is requested.
--->
+<!-- Use one H2 per finding. Do not fragment a finding into many same-level
+sections. Write one or two substantive paragraphs that distinguish reported,
+visible, and uncertain information without inventing missing product context. -->
 
-## {{ title }}
+## {{ watch_from }} — {{ title }}
 
-- **Status:** Needs review
-- **Confidence:** {{ confidence }}
-- **Evidence need:** {{ evidence_need }}
-- **Dynamic mode:** {{ dynamic_mode }}
-- **Time range:** {{ time_range }}
-- **Watch from:** [{{ watch_from }} in the original video]({{ original_video_link }})
+[Open the original video at {{ watch_from }}]({{ original_video_link }})
 
-### Reported issue
+{{ detailed_description }}
 
-{{ reported_issue }}
+![{{ image_alt }}]({{ representative_image }})
 
-### Observation
+*Image evidence · {{ image_timestamp }} — {{ image_caption }}*
 
-{{ observation }}
+**Evidence boundary:** {{ evidence_boundary }}
 
-### Reviewer expectation
-
-{{ reviewer_expectation }}
-
-### Unknown or unstated context
-
-{{ unknown_context }}
-
-### Evidence
-
-{{ transcript_evidence }}
-
-{{ representative_image }}
-
-### Suggested classification
-
-{{ interpretation }}
-
-### Optional follow-up
+**Status:** Needs review · **Confidence:** {{ confidence }} · **Evidence:** {{ evidence_need }}
 
 {{ optional_follow_up }}
-
-### Human decision
-
-- [ ] Confirm as issue
-- [ ] Rewrite
-- [ ] Discard
