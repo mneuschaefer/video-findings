@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_video": "https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157",
   "transcript": "narrated-demo-transcript.md",
   "transcript_language": "English",
@@ -70,5 +70,6 @@
       "original_video_timestamp": 68.72,
       "optional_clip": null
     }
-  ]
+  ],
+  "other_topics": []
 }

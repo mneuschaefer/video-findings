@@ -35,6 +35,14 @@ Specific uncertainty or a reviewer-requested follow-up is included naturally
 only when it adds useful information. Customize these rules in
 [`../templates/dossier-guidance.md`](../templates/dossier-guidance.md).
 
+When useful transcript content is not a finding, `findings.json` stores it in
+the top-level `other_topics` array. The dossier gives one brief notice near the
+beginning and lists those timestamped topics after every finding. This final
+section is only an index: it uses no evidence images and does not claim to be a
+complete meeting summary. The user can request a separate summary of selected
+topics later. If no useful other topics exist, the array is empty and the
+notice and section are omitted.
+
 Each finding has an `evidence_need` value:
 
 - `static`: one representative image normally provides enough orientation;

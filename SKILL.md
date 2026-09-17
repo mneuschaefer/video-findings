@@ -47,7 +47,11 @@ enough.
    or when a timing-dependent claim requires diagnosis.
 4. Read [prompts/detect-findings.md](prompts/detect-findings.md), then use the AI
    to review **every cue in the complete
-   `material/transcript-cues.json` semantically**.
+   `material/transcript-cues.json` semantically**. Classify useful content as a
+   finding, a noteworthy other topic, or neither. Other topics are timestamped
+   ideas, reminders, preferences, future work, or discussion points that may
+   matter later but are not findings about the reviewed subject. Do not turn
+   filler, vague frustration, or every conversational aside into an entry.
    Capture every described bug or actionable finding, including claims that
    visual evidence cannot fully confirm. Mention uncertainty only when it is
    meaningful—for example unclear audio, an ambiguous visual state, or a
@@ -88,9 +92,11 @@ enough.
    default summarization style. Write `material/findings.json`
    according to [templates/findings.schema.json](templates/findings.schema.json)
    and keep transcripts, machine-readable data, motion indexes, and images in
-   `material/`. Link the full transcript from the dossier. Derived reports may
-   be regenerated from the material folder and original recording without
-   retranscribing the source.
+   `material/`. Link the full transcript from the dossier. When noteworthy
+   non-finding topics exist, add only a brief pointer near the beginning and a
+   timestamped index after all findings. Derived reports may be regenerated
+   from the material folder and original recording without retranscribing the
+   source.
 
 Read [docs/setup-macos.md](docs/setup-macos.md) when installing on a new Mac and
 [docs/input-formats.md](docs/input-formats.md) when input origin or transcript
@@ -155,6 +161,15 @@ the visual state is ambiguous, a claim cannot be verified, or the reviewer
 explicitly wants another check, add one natural sentence at the relevant point.
 Otherwise omit uncertainty boilerplate.
 
+When the transcript contains noteworthy ideas, reminders, preferences, future
+work, or unrelated discussion that is not a finding, add a brief notice near
+the beginning of the dossier and list those items under `Other topics
+mentioned` after the last finding. Give each item a timestamp, concise title,
+and short neutral description. Do not add screenshots, expand the section into
+a meeting summary, or mix these items into the findings. End the section by
+offering to summarize selected topics separately. Omit both the notice and the
+section when there are no useful other topics.
+
 Every finding references the original video, gives the exact timestamp from
 which a reviewer can continue watching, and includes the smallest relevant
 transcript evidence. Use relative links so the result works in GitHub and
@@ -175,7 +190,9 @@ and clip example.
 Edit [templates/dossier-guidance.md](templates/dossier-guidance.md) to change
 how findings are summarized for a recurring personal or team workflow. Edit
 [templates/finding.md](templates/finding.md) for the per-finding Markdown layout
-and [templates/report.md](templates/report.md) for the surrounding dossier.
+and [templates/other-topic.md](templates/other-topic.md) for entries in the
+optional topic index. Edit [templates/report.md](templates/report.md) for the
+surrounding dossier.
 Instructions in the current prompt still take precedence over these defaults.
 
 ## Recording responsibility

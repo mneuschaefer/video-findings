@@ -3,9 +3,9 @@
   "$id": "https://github.com/mneuschaefer/video-findings/templates/findings.schema.json",
   "title": "Video Findings results",
   "type": "object",
-  "required": ["schema_version", "source_video", "transcript", "findings"],
+  "required": ["schema_version", "source_video", "transcript", "findings", "other_topics"],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "source_video": {"type": ["string", "null"]},
     "transcript": {"type": "string"},
     "transcript_language": {"type": "string"},
@@ -88,6 +88,28 @@
           },
           "original_video_timestamp": {"type": "number", "minimum": 0},
           "optional_clip": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "other_topics": {
+      "type": "array",
+      "description": "Timestamped index of useful transcript content that is not a finding; empty when none exists",
+      "items": {
+        "type": "object",
+        "required": ["start", "end", "title", "summary"],
+        "properties": {
+          "start": {"type": "number", "minimum": 0},
+          "end": {"type": "number", "minimum": 0},
+          "title": {"type": "string"},
+          "summary": {
+            "type": "string",
+            "description": "Short neutral description in the report language, not a full meeting summary"
+          },
+          "source_excerpt": {
+            "type": ["string", "null"],
+            "description": "Optional original-language excerpt"
+          }
         },
         "additionalProperties": true
       }

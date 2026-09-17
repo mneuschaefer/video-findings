@@ -28,6 +28,10 @@ the boundary between deterministic media processing and model interpretation.
   `Video Findings.md` at the output root and every supporting artifact under
   `material/`. Each finding starts with its timestamp, contains detailed prose,
   embeds one image, and captions that image with timestamp and visible state.
+- Classify useful non-finding remarks separately. When present, add only a
+  brief pointer near the beginning and a timestamped `Other topics mentioned`
+  index after all findings. Do not attach screenshots or turn it into a full
+  meeting summary; omit filler and omit the section entirely when empty.
 - Omit routine Status, Confidence, and Evidence labels from the dossier. Include
   uncertainty or a need for another check only when it is specific and useful,
   phrased naturally within the finding.

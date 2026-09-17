@@ -57,7 +57,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-Version `0.3.1` works with narrated recordings in which spoken content only
+Version `0.3.2` works with narrated recordings in which spoken content only
 makes sense together with the matching image or video segment. UI reviews are
 the included tested example, not a restriction on how the skill can be used.
 
@@ -76,6 +76,12 @@ said and what the recording shows. It does not invent a product, requirement,
 severity, or expected behavior when that context is missing. The same source
 transcript can later be used to regenerate the report or convert selected
 findings into another format.
+
+Useful remarks that are not findings—such as an idea, reminder, preference, or
+future discussion point—are not discarded. When present, they appear as a
+short timestamped index after all findings, with only a brief pointer near the
+top. This is a safety net, not a complete meeting summary; screenshots are not
+created for these entries.
 
 ## Supported local files
 
@@ -272,7 +278,9 @@ single scrollable document. Every finding heading starts with its timestamp,
 uses one or two detailed paragraphs, embeds its representative image, and
 captions that image with the exact image time and a description of the visible
 state. Transcripts, JSON, motion data, and other working files stay under
-`material/`. The user can override any of these defaults in the prompt.
+`material/`. If other noteworthy topics were mentioned, a compact timestamped
+index appears after the findings and offers a separate summary on request. The
+user can override any of these defaults in the prompt.
 
 The first pass stays sparse. A compact numeric movement index helps route
 timing-dependent findings but creates no extra images or clips. Such findings
@@ -336,7 +344,8 @@ The default summarization rules live in
 file to define how findings should be written for a recurring personal or team
 workflow. The per-finding Markdown layout is in
 [`templates/finding.md`](templates/finding.md), and the surrounding document is
-in [`templates/report.md`](templates/report.md).
+in [`templates/report.md`](templates/report.md). Optional non-finding topic
+entries use [`templates/other-topic.md`](templates/other-topic.md).
 
 The default style combines what is visible, how the reviewer comments on it,
 and what they expect or intend to do. It omits generic Status, Confidence, and
@@ -376,7 +385,7 @@ accounts.
 
 ## Project status
 
-Version `0.3.1` is a portable, testable foundation for macOS. UI reviews are
+Version `0.3.2` is a portable, testable foundation for macOS. UI reviews are
 the included tested example. It automates deterministic preparation and local
 transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.

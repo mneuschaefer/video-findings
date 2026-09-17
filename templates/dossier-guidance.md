@@ -28,6 +28,20 @@ Add a natural sentence—not a separate metadata field—when:
 - the reviewer explicitly says that something needs another check;
 - a dynamic interval or follow-up clip would materially help.
 
+## Other topics mentioned
+
+If the transcript contains useful ideas, reminders, preferences, future work,
+or unrelated discussion that is not a finding:
+
+- add one short pointer near the beginning of the dossier;
+- place a separate `Other topics mentioned` section after every finding;
+- give each topic a timestamp, concise title, and short neutral description;
+- do not require a screenshot or turn the section into a meeting summary;
+- offer to summarize selected topics separately if the user wants them.
+
+Omit the pointer and section when no useful other topics exist. Do not retain
+filler or vague asides merely to prove that every sentence was classified.
+
 ## Omit by default
 
 - Status labels such as `Needs review`;

@@ -222,6 +222,28 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("transcript-source.vtt", material_entries)
         self.assertIn("transcript.md", material_entries)
 
+    def test_default_report_places_other_topics_after_findings(self):
+        root = Path(__file__).parents[1]
+        report_template = (root / "templates" / "report.md").read_text(encoding="utf-8")
+        finding_position = report_template.index("{{ findings }}")
+        topics_position = report_template.index("{{ other_topics }}")
+        source_position = report_template.index("## Source material")
+        self.assertLess(finding_position, topics_position)
+        self.assertLess(topics_position, source_position)
+        self.assertIn("{{ other_topics_notice }}", report_template[:finding_position])
+
+    def test_structured_results_require_other_topics_array(self):
+        root = Path(__file__).parents[1]
+        schema = json.loads(
+            (root / "templates" / "findings.schema.json").read_text(encoding="utf-8")
+        )
+        example = json.loads(
+            (root / "examples" / "narrated-demo-findings.json").read_text(encoding="utf-8")
+        )
+        self.assertIn("other_topics", schema["required"])
+        self.assertEqual(example["other_topics"], [])
+        self.assertTrue((root / "templates" / "other-topic.md").is_file())
+
     def test_user_facing_scripts_are_executable(self):
         scripts = Path(__file__).parents[1] / "scripts"
         for name in (

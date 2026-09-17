@@ -28,6 +28,16 @@ The user may override the dossier name, structure, format, or artifact set in
 the current prompt. Otherwise produce the default single-file dossier described
 in `SKILL.md`.
 
+Review every cue and place useful content into exactly one of these categories:
+
+1. **Finding:** a described bug, usability concern, observed problem, or other
+   actionable finding about the reviewed subject.
+2. **Other topic:** a potentially useful idea, reminder, preference, future
+   task, discussion point, or unrelated thought that is not a finding. Preserve
+   its timestamp so it is not lost, but do not require visual evidence.
+3. **Neither:** filler, repetition without new information, vague frustration,
+   or an aside with no plausible later value.
+
 For each possible finding:
 
 1. Quote or closely paraphrase the smallest relevant passage.
@@ -51,9 +61,12 @@ For each possible finding:
    `audio-visual`, or `slow4x`.
 10. Merge repeated discussion of the same behavior while retaining every time
    range.
-11. Exclude harmless commentary and general preferences unless they imply an
-   actionable usability concern.
+11. Do not promote harmless commentary or general preferences to findings.
+    Retain a concrete preference or discussion point as an other topic when it
+    could be useful later.
 
-Return candidate findings only. The first pass is a "where to find what"
-overview. Visual verification happens separately and uses one representative
-image per finding by default.
+Return candidate findings and a separate `other_topics` list. Each other topic
+contains its start/end time, a concise title, and a short neutral summary in the
+report language. Do not create a screenshot or full meeting-summary entry for
+it. The first pass is a "where to find what" overview. Visual verification
+happens separately and uses one representative image per finding by default.

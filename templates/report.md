@@ -17,7 +17,11 @@ Language policy:
 
 {{ summary }}
 
+{{ other_topics_notice }}
+
 {{ findings }}
+
+{{ other_topics }}
 
 ## Source material
 
