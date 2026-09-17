@@ -11,7 +11,7 @@ Language policy:
 
 **Source:** {{ source }}
 
-**Original video:** {{ original_video_link }}
+**Original video:** `{{ original_video_path }}`
 
 **Generated:** {{ generated_at }}
 

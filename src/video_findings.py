@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import html
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -269,7 +268,7 @@ def extract_frames(
 def render_report(
     source: str,
     candidates: list[Candidate],
-    source_link: str | None = None,
+    source_path: str | None = None,
 ) -> str:
     blocks: list[str] = []
     for number, candidate in enumerate(candidates, 1):
@@ -285,13 +284,6 @@ def render_report(
             max(candidate.windows, key=lambda item: item["end"] - item["start"])["start"]
             + max(candidate.windows, key=lambda item: item["end"] - item["start"])["end"]
         ) / 2
-        if source_link:
-            video_reference = (
-                f"[Open the original video]({source_link}#t={watch_from:.3f}) — "
-                f"continue from {format_timestamp(watch_from)}"
-            )
-        else:
-            video_reference = "No source video supplied."
         image_caption = (
             f"*Image evidence · {format_timestamp(representative_time)} — "
             "Representative frame from the interval associated with the "
@@ -299,7 +291,6 @@ def render_report(
         )
         blocks.append(
             f"## {heading_timestamp} — Candidate finding {number}\n\n"
-            f"{video_reference}\n\n"
             f"The reviewer comments: “{quote}”\n\n"
             f"{images or 'No video supplied.'}\n\n"
             f"{image_caption if images else ''}\n"
@@ -307,7 +298,8 @@ def render_report(
     return (
         "# Video Findings\n\n"
         f"**Source:** {source}  \n"
-        f"**Generated:** {datetime.now(timezone.utc).isoformat()}  \n"
+        + (f"**Original video:** `{source_path}`  \n" if source_path else "")
+        + f"**Generated:** {datetime.now(timezone.utc).isoformat()}  \n"
         "*Automatically prepared transcript-led overview.*\n\n"
         "## Summary\n\n"
         f"{len(candidates)} transcript-led candidate group(s) were found.\n\n"
@@ -388,7 +380,7 @@ def prepare(args: argparse.Namespace) -> int:
         render_report(
             video.name if video else transcript.name,
             candidates,
-            os.path.relpath(video, output) if video else None,
+            str(video) if video else None,
         ),
         encoding="utf-8",
     )

@@ -22,8 +22,9 @@ only the strongest screenshot in the report.
   that conflict naturally in the finding.
 - A screenshot is useful evidence only if a reviewer can understand what it
   supports from the caption and surrounding observation.
-- Reference the original video for every finding and give the exact start
-  timestamp from which the reviewer can inspect the full motion and audio.
+- Give every finding the exact start timestamp from which the reviewer can
+  inspect the full motion and audio. Put the real local source-video path once
+  in the dossier header; do not add a video deep link to every finding.
 - Include multiple screenshots in the final report only when the user
   explicitly requests dense evidence.
 

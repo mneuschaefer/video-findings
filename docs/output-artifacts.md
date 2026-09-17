@@ -12,6 +12,11 @@ The user may request another output name, format, or folder structure. Without
 such an override, the output root contains only `Video Findings.md` and the
 `material/` folder.
 
+For a local recording, the dossier header records the original video's real
+system path once. Each finding uses its heading timestamp to identify the
+relevant point; the default output does not construct per-finding video deep
+links.
+
 | Artifact | Purpose |
 |---|---|
 | `Video Findings.md` | One scrollable, detailed, human-readable dossier |

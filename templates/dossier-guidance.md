@@ -14,7 +14,8 @@ the current prompt take precedence.
   severity, causes, ownership, or intended behavior.
 - Embed one representative image and caption it with its exact timestamp and a
   concrete description of what is visible.
-- Link the corresponding point in the original video.
+- Put the real local source-video path once in the dossier header. Use the
+  timestamp in the finding heading instead of a per-finding video deep link.
 - Keep quotes and visible UI text in their original language unless translation
   is requested. Direct quotes are optional because the transcript is linked.
 

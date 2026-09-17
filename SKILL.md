@@ -151,7 +151,9 @@ uncertainty instead of filling missing product context.
 Place the representative image directly inside its finding. Follow it with a
 caption containing the image timestamp and a short, concrete description of
 what is visible. A bare image path or unexplained screenshot is not useful
-evidence. Link the exact point in the original video. Direct quotes are
+evidence. Put the real local system path to the source video once in the dossier
+header and use the timestamp in each finding heading to identify the exact
+point. Do not add per-finding video deep links by default. Direct quotes are
 optional in the dossier because the full transcript is linked; whenever quotes
 or visible UI text are included, preserve their original language unless the
 user asks for translation.
@@ -170,12 +172,13 @@ a meeting summary, or mix these items into the findings. End the section by
 offering to summarize selected topics separately. Omit both the notice and the
 section when there are no useful other topics.
 
-Every finding references the original video, gives the exact timestamp from
-which a reviewer can continue watching, and includes the smallest relevant
-transcript evidence. Use relative links so the result works in GitHub and
-Obsidian. Additional diagnostic frames may be generated temporarily, but
-include them in the final report only when the user explicitly requests dense
-evidence.
+Every finding gives the exact timestamp from which a reviewer can continue
+watching and includes the smallest relevant transcript evidence. The dossier
+header contains the real source-video system path once; do not repeat it or
+construct timestamp-fragment links under each finding. Use relative links for
+derived artifacts so the result works in GitHub and Obsidian. Additional
+diagnostic frames may be generated temporarily, but include them in the final
+report only when the user explicitly requests dense evidence.
 
 The first pass is a sparse "where to find what" overview. It does not create
 clips automatically. Mark findings whose meaning depends on timing or motion as

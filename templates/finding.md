@@ -4,8 +4,6 @@ visible, and uncertain information without inventing missing product context. --
 
 ## {{ watch_from }} — {{ title }}
 
-[Open the original video at {{ watch_from }}]({{ original_video_link }})
-
 {{ detailed_description }}
 
 ![{{ image_alt }}]({{ representative_image }})

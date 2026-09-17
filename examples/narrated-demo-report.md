@@ -7,8 +7,6 @@ order summary.
 
 ## 00:22.720 — Continue provides no visible response
 
-[Open the original video at 00:22.720](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157#t=22.720)
-
 The reviewer reports that pressing `Continue` produces no visible response in
 two separate attempts. In the sampled states, the checkout remains on step 2
 of 3 with standard delivery selected; the button stays visible and neither an
@@ -28,8 +26,6 @@ Optional next step: extract finding 1 as a short clip with or without audio and
 convert it to the requested ticket format.
 
 ## 01:08.720 — Discount message overlaps the order total
-
-[Open the original video at 01:08.720](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157#t=68.720)
 
 The reviewer describes a discount message overlapping the total and making the
 final amount difficult to read. The representative image directly supports

@@ -6,7 +6,7 @@ captures the context, but the useful observations still need to be found and
 turned into clear findings. The Video Findings skill breaks the recording into
 reviewable findings by connecting spoken comments with the relevant moments on
 screen. Each finding includes a representative screenshot and the exact point
-in the original video.
+in the original video as a timestamp.
 
 > **Platform support:** The current release supports macOS and is tested there.
 > The Python core and FFmpeg media processing are portable, but setup, local
@@ -37,8 +37,9 @@ Select the preview to play the MP4 with sound.
 [![Representative evidence: the discount confirmation overlaps the total](examples/assets/discount-overlap.jpg)](examples/narrated-demo-report.md)
 
 The full report contains two findings. Each finding has one representative
-screenshot and an exact link to the original video. Reviewers can inspect the
-motion and audio without sorting through near-identical images.
+screenshot and an exact source timestamp. Local analyses show the original
+video's real system path once in the dossier header instead of relying on
+per-finding deep links.
 
 ## Install with Codex or Claude Code
 
@@ -57,7 +58,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-Version `0.3.2` works with narrated recordings in which spoken content only
+Version `0.3.3` works with narrated recordings in which spoken content only
 makes sense together with the matching image or video segment. UI reviews are
 the included tested example, not a restriction on how the skill can be used.
 
@@ -287,8 +288,9 @@ backend. Otherwise, it uses the minimal `whisper.cpp` fallback. It preserves eve
 timestamped cue and creates optional keyword leads. The agent then reviews the
 complete transcript for meaning and collects the visual evidence for each
 finding. The keyword script does not make that decision. Each final finding
-normally contains one representative screenshot, a link to the original video,
-and the exact timestamp from which to continue watching.
+normally contains one representative screenshot and the exact timestamp from
+which to continue watching. The dossier records the real local path to the
+original video once at the top rather than adding unreliable deep links.
 
 Unless the current prompt asks for another name or structure, the output root
 contains only `Video Findings.md` and the `material/` folder. The dossier is a
@@ -403,7 +405,7 @@ accounts.
 
 ## Project status
 
-Version `0.3.2` is a portable, testable foundation for macOS. UI reviews are
+Version `0.3.3` is a portable, testable foundation for macOS. UI reviews are
 the included tested example. It automates deterministic preparation and local
 transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.

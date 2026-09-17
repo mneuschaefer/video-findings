@@ -176,7 +176,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(candidate.frames), 6)
         self.assertEqual(run.call_count, 6)
 
-    def test_report_links_original_video_at_exact_start_time(self):
+    def test_report_shows_source_path_once_without_video_deep_links(self):
         candidate = MODULE.Candidate(
             id="finding-001",
             confidence="High",
@@ -184,11 +184,10 @@ class PipelineTests(unittest.TestCase):
             windows=[{"start": 22.72, "end": 31.52}],
             frames=["material/finding-001.jpg"],
         )
-        report = MODULE.render_report(
-            "review.mp4", [candidate], "../../review.mp4"
-        )
-        self.assertIn("../../review.mp4#t=22.720", report)
-        self.assertIn("continue from 00:00:22.720", report)
+        report = MODULE.render_report("review.mp4", [candidate], "/video/review.mp4")
+        self.assertIn("**Original video:** `/video/review.mp4`", report)
+        self.assertNotIn("#t=22.720", report)
+        self.assertNotIn("Open the original video", report)
         self.assertIn("## 00:00:22.720 — Candidate finding 1", report)
         self.assertIn("*Image evidence · 00:00:27.120 —", report)
         self.assertNotIn("**Status:**", report)
