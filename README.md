@@ -1,8 +1,8 @@
-# Review to Issues
+# Video Findings
 
-**Turn recorded UI reviews into evidence-backed issue drafts.**
+**Turn narrated videos into evidence-backed visual findings.**
 
-![Review to Issues: recorded review, selected evidence, reviewable finding](assets/review-to-issues-hero-editorial-v2.png)
+![Video Findings: narrated video, selected evidence, reviewable finding](assets/video-findings-hero-editorial-v2.png)
 
 ## Install it with Codex or Claude Code
 
@@ -10,23 +10,27 @@ Replace the placeholder with this repository's URL, then paste the complete
 prompt into your coding agent:
 
 ```text
-Clone <REPOSITORY_URL> into a local folder named review-to-issues and install it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos to inspect the environment, explain any machine-level changes, and only then run ./scripts/setup-macos --install with my approval. Finally run make test and make demo, keep all recordings local, and report the generated report path plus any missing dependency or permission.
+Clone <REPOSITORY_URL> into a local folder named video-findings and install it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos to inspect the environment, explain any machine-level changes, and only then run ./scripts/setup-macos --install with my approval. Finally run make test and make demo, keep all recordings local, and report the generated report path plus any missing dependency or permission.
 ```
 
 Already downloaded the folder? Ask the agent:
 
 ```text
-Open this review-to-issues folder, read SKILL.md, prepare it on this Mac, run the tests and demo, and tell me when it is ready for a local QuickTime or downloaded Teams recording. Do not upload media anywhere.
+Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the tests and demo, and tell me when it is ready for a local QuickTime or downloaded Teams recording. Do not upload media anywhere.
 ```
 
 ## The use case
+
+The included `0.1.0` analysis profile starts with narrated UI reviews. The
+underlying method is broader: use transcript cues to locate moments whose
+meaning or evidence depends on the matching visual state.
 
 A 30-minute UI review may contain five useful findings hidden inside hundreds
 of conversational sentences. Afterwards, somebody still has to locate the
 right moments, capture screenshots, and reconstruct what was observed and what
 the reviewer merely expected.
 
-Review to Issues turns that work into a small, inspectable evidence pipeline:
+Video Findings turns that work into a small, inspectable evidence pipeline:
 
 > Use speech to find likely problem moments. Inspect only those video windows.
 > Produce reviewable Markdown findings with timestamps and screenshots.
@@ -160,7 +164,7 @@ need denser inspection of the candidate interval.
 ## Repository structure
 
 ```text
-review-to-issues/
+video-findings/
 ├── SKILL.md                  # Agent workflow and evidence rules
 ├── src/                      # Deterministic transcript preparation
 ├── scripts/                  # Setup, transcription, media, and packaging
@@ -180,7 +184,7 @@ exporters can change without coupling them to the media scripts.
 make package
 ```
 
-This creates `dist/review-to-issues-<version>.tar.gz` and a SHA-256 checksum.
+This creates `dist/video-findings-<version>.tar.gz` and a SHA-256 checksum.
 Recordings, downloaded models, generated reports, caches, and temporary
 validation files are excluded.
 
@@ -201,9 +205,9 @@ Obsidian plugin, a cloud backend, or user accounts.
 ## Project status
 
 Version `0.1.0` is a portable macOS-oriented package and a testable V1
-foundation. Deterministic preparation and local transcription are automated;
-nuanced visual verification remains an explicit agent or human task so
-uncertainty stays visible.
+foundation with an initial UI-review profile. Deterministic preparation and
+local transcription are automated; nuanced visual verification remains an
+explicit agent or human task so uncertainty stays visible.
 
 ## License
 

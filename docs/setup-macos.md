@@ -55,7 +55,7 @@ Choose a different model when needed:
 
 ```bash
 ./scripts/setup-macos --install --model small
-export REVIEW_TO_ISSUES_MODEL_PATH="$PWD/models/ggml-small.bin"
+export VIDEO_FINDINGS_MODEL_PATH="$PWD/models/ggml-small.bin"
 ```
 
 The default base model keeps setup reasonably small. A larger multilingual
@@ -65,12 +65,12 @@ runtime.
 Force the CPU path when a Mac has a known Metal/backend incompatibility:
 
 ```bash
-export REVIEW_TO_ISSUES_NO_GPU=1
+export VIDEO_FINDINGS_NO_GPU=1
 ```
 
 After an actual GPU backend failure, the wrapper stores the project-local marker
 `models/.force-cpu` and uses the stable CPU path on later runs. Set
-`REVIEW_TO_ISSUES_USE_GPU=1` for one run if you intentionally want to retry the
+`VIDEO_FINDINGS_USE_GPU=1` for one run if you intentionally want to retry the
 GPU backend after an upgrade.
 
 ## File permissions and local availability

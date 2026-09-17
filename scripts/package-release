@@ -4,9 +4,9 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd "$script_dir/.." && pwd)
 version=$(tr -d '[:space:]' < "$project_dir/VERSION")
-package_name="review-to-issues-$version"
+package_name="video-findings-$version"
 dist_dir="$project_dir/dist"
-staging_root=$(mktemp -d "${TMPDIR:-/tmp}/review-to-issues-package.XXXXXX")
+staging_root=$(mktemp -d "${TMPDIR:-/tmp}/video-findings-package.XXXXXX")
 trap 'rm -rf "$staging_root"' EXIT
 package_dir="$staging_root/$package_name"
 

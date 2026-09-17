@@ -83,12 +83,12 @@ else
   printf 'Whisper model already present: %s\n' "$model_path"
 fi
 
-REVIEW_TO_ISSUES_MODEL_PATH="$model_path" "$script_dir/check-environment" --require-transcription
+VIDEO_FINDINGS_MODEL_PATH="$model_path" "$script_dir/check-environment" --require-transcription
 
-smoke_dir=$(mktemp -d "${TMPDIR:-/tmp}/review-to-issues-setup.XXXXXX")
+smoke_dir=$(mktemp -d "${TMPDIR:-/tmp}/video-findings-setup.XXXXXX")
 trap 'rm -rf "$smoke_dir"' EXIT
 ffmpeg -hide_banner -loglevel error -y \
   -f lavfi -i "anullsrc=r=16000:cl=mono" -t 0.5 "$smoke_dir/silence.wav"
-REVIEW_TO_ISSUES_MODEL_PATH="$model_path" \
+VIDEO_FINDINGS_MODEL_PATH="$model_path" \
   "$script_dir/transcribe-local" "$smoke_dir/silence.wav" "$smoke_dir/smoke.vtt" en >/dev/null
 echo "Local transcription smoke test passed."

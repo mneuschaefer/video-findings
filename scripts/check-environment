@@ -63,7 +63,7 @@ PY
   fi
 fi
 
-model_path=${REVIEW_TO_ISSUES_MODEL_PATH:-$project_dir/models/ggml-base.bin}
+model_path=${VIDEO_FINDINGS_MODEL_PATH:-$project_dir/models/ggml-base.bin}
 if [[ -f "$model_path" && -r "$model_path" ]]; then
   printf 'ok      %-18s %s\n' 'Whisper model' "$model_path"
 else

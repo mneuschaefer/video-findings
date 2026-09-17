@@ -53,10 +53,9 @@ if [[ -z "$transcript" ]]; then
   "$script_dir/transcribe-local" "$video" "$transcript" "$language"
 fi
 
-python3 "$project_dir/src/review_to_issues.py" prepare \
+python3 "$project_dir/src/video_findings.py" prepare \
   --video "$video" \
   --transcript "$transcript" \
   --output "$output"
 
 printf '\nDraft ready: %s/report.md\n' "$output"
-

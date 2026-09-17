@@ -12,7 +12,7 @@ project_dir=$(cd "$script_dir/.." && pwd)
 input_media=$1
 output_vtt=$2
 language=${3:-auto}
-model_path=${REVIEW_TO_ISSUES_MODEL_PATH:-$project_dir/models/ggml-base.bin}
+model_path=${VIDEO_FINDINGS_MODEL_PATH:-$project_dir/models/ggml-base.bin}
 cpu_marker="$project_dir/models/.force-cpu"
 
 if [[ ! -f "$input_media" || ! -r "$input_media" ]]; then
@@ -34,7 +34,7 @@ case "$output_vtt" in
 esac
 
 mkdir -p "$(dirname "$output_vtt")"
-temporary_dir=$(mktemp -d "${TMPDIR:-/tmp}/review-to-issues.XXXXXX")
+temporary_dir=$(mktemp -d "${TMPDIR:-/tmp}/video-findings.XXXXXX")
 trap 'rm -rf "$temporary_dir"' EXIT
 wav="$temporary_dir/audio.wav"
 output_base=${output_vtt%.*}
@@ -49,8 +49,8 @@ whisper_args=(
   --no-prints
 )
 
-force_cpu=${REVIEW_TO_ISSUES_NO_GPU:-0}
-if [[ -f "$cpu_marker" && "${REVIEW_TO_ISSUES_USE_GPU:-0}" != 1 ]]; then
+force_cpu=${VIDEO_FINDINGS_NO_GPU:-0}
+if [[ -f "$cpu_marker" && "${VIDEO_FINDINGS_USE_GPU:-0}" != 1 ]]; then
   force_cpu=1
 fi
 
@@ -59,7 +59,7 @@ if [[ "$force_cpu" == 1 ]]; then
 else
   gpu_log="$temporary_dir/whisper-gpu.log"
   if ! /bin/sh -c 'whisper-cli "$@"; result_code=$?; exit $result_code' \
-    review-to-issues-gpu "${whisper_args[@]}" 2>"$gpu_log"; then
+    video-findings-gpu "${whisper_args[@]}" 2>"$gpu_log"; then
     echo "GPU transcription is unavailable on this Mac; switching to the stable local CPU mode." >&2
     rm -f "$output_vtt"
     touch "$cpu_marker"

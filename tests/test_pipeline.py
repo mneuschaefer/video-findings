@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 
 
-MODULE_PATH = Path(__file__).parents[1] / "src" / "review_to_issues.py"
-SPEC = importlib.util.spec_from_file_location("review_to_issues", MODULE_PATH)
+MODULE_PATH = Path(__file__).parents[1] / "src" / "video_findings.py"
+SPEC = importlib.util.spec_from_file_location("video_findings", MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 import sys

@@ -1,6 +1,6 @@
 # Agent guidance
 
-This repository turns recorded UI reviews into reviewable findings. Preserve
+This repository turns narrated videos into reviewable visual findings. Preserve
 the boundary between deterministic media processing and model interpretation.
 
 - Keep media scripts small, local-first, and dependency-light.

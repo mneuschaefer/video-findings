@@ -1,13 +1,14 @@
 ---
-name: review-to-issues
-description: Turn a local QuickTime/macOS screen recording, downloaded Teams recording, or other MOV/MP4 UI review and optional VTT/SRT transcript into evidence-backed Markdown findings with timestamps and screenshots. Use for product, QA, UX, or requirements review recordings; do not use for general meeting summaries.
+name: video-findings
+description: Use transcript cues to turn a local narrated MOV/MP4 video and optional VTT/SRT transcript into evidence-backed Markdown findings with timestamps and screenshots. Use when the visual state is necessary to understand or verify what is said, especially for product, QA, UX, requirements, support, or process review recordings; do not use for general meeting summaries.
 ---
 
-# Review to Issues
+# Video Findings
 
-Create reviewable issue drafts from a UI review recording. Treat the transcript
-as a search index for the video: find likely problem moments in speech first,
-then inspect only small visual windows around those moments.
+Create reviewable visual findings from a narrated recording. The included
+profile specializes in UI reviews: treat the transcript as a search index for
+the video, find likely problem moments in speech first, then inspect only small
+visual windows around those moments.
 
 Supported inputs include QuickTime Player or macOS screen recordings saved as
 `.mov`, Teams recordings downloaded to the computer as `.mp4`, and ordinary
@@ -26,7 +27,7 @@ enough.
    `scripts/analyze-recording`; both use local `whisper.cpp`. Do not upload media
    or transcript without explicit approval.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
-   `python3 src/review_to_issues.py prepare ...` to create deterministic
+   `python3 src/video_findings.py prepare ...` to create deterministic
    candidate windows, frames, `candidates.json`, and a draft report.
 4. Read [prompts/detect-findings.md](prompts/detect-findings.md) before judging
    transcript candidates. Treat heuristic candidates as leads, not findings.
