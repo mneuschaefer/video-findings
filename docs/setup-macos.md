@@ -79,9 +79,9 @@ and points to `https://brew.sh`.
 
 The additional speech-model download is **0 MiB when a compatible model is
 already installed**. Otherwise exactly one model is downloaded. MacParakeet
-currently reports Parakeet TDT v3 at ~465 MB. The minimum Whisper fallback
-`base` is 142 MiB; current upstream alternatives are `tiny` 75 MiB, `small`
-466 MiB, `medium` 1.5 GiB, and full `large` 2.9 GiB. Start with Parakeet v3, or
+currently reports Parakeet TDT v3 at ~465 MB. The default Whisper fallback
+`base` is 142 MiB; the smallest opt-in alternative is `tiny` 75 MiB, followed
+by `small` 466 MiB, `medium` 1.5 GiB, and full `large` 2.9 GiB. Start with Parakeet v3, or
 Whisper `base` when MacParakeet is unavailable. Move to a larger or newer
 compatible model only when the machine, language, or transcript quality calls
 for it. Homebrew may separately fetch missing Python, FFmpeg, or `whisper.cpp`

@@ -171,9 +171,10 @@ every missing Homebrew formula.
 **The additional speech-model download is 0 MiB when a compatible model is
 already installed.** Otherwise setup downloads exactly one model. On a Mac with
 MacParakeet, the tested recommendation is Parakeet TDT v3 (~465 MB as reported
-by MacParakeet). Without MacParakeet, the minimum functional fallback is
-Whisper `base` at 142 MiB. Optional Whisper choices range from `tiny` at 75 MiB
-to a full `large` model at 2.9 GiB (`small` 466 MiB; `medium` 1.5 GiB). Start
+by MacParakeet). Without MacParakeet, the default functional fallback is
+Whisper `base` at 142 MiB. The smallest opt-in choice is `tiny` at 75 MiB, and
+optional Whisper choices range up to a full `large` model at 2.9 GiB (`small`
+466 MiB; `medium` 1.5 GiB). Start
 with Parakeet v3, or Whisper `base` when Parakeet is unavailable; choose a
 larger or newer compatible model before installation only when the device or
 expected audio quality justifies it. Homebrew may separately fetch missing
