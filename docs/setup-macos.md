@@ -15,9 +15,14 @@ Required for all runs:
 
 Required only when no VTT/SRT transcript is available:
 
-- `whisper.cpp` and its `whisper-cli` binary;
-- a local GGML Whisper model. The setup script defaults to multilingual
-  `ggml-base.bin`.
+- either MacParakeet with an already downloaded Parakeet model (preferred), or
+  `whisper.cpp` with a local GGML Whisper model (fallback).
+
+Video Findings checks the standalone `macparakeet-cli` and the CLI bundled in
+`/Applications/MacParakeet.app`. When both its CLI and a local Parakeet model
+are ready, that installation is reused without downloading another speech
+model. The transcription wrapper disables MacParakeet telemetry for its runs
+and uses `--no-history`, so those jobs are not added to MacParakeet history.
 
 ## Safe setup behavior
 
@@ -33,23 +38,44 @@ Install missing dependencies only after reviewing the requested changes:
 ./scripts/setup-macos --install
 ```
 
+In an interactive terminal this asks for confirmation. An agent or other
+non-interactive caller must stop after showing the plan and obtain explicit
+approval before using:
+
+```bash
+./scripts/setup-macos --install --yes
+```
+
 The install mode:
 
-1. requires an existing Homebrew installation;
-2. requests only missing `python`, `ffmpeg`, or `whisper.cpp` formulae;
-3. downloads the selected Whisper model from the official whisper.cpp model
-   repository on Hugging Face;
-4. validates commands, model readability, and project write access.
-5. runs a short local transcription smoke test. If the Metal/GPU backend fails,
-   the wrapper retries with `whisper.cpp --no-gpu`.
+1. detects a ready MacParakeet/Parakeet installation first;
+2. prints the complete plan before changing anything;
+3. requires an existing Homebrew installation only when formulae are missing;
+4. requests only missing `python` and `ffmpeg` formulae, plus `whisper.cpp`
+   only when no ready local transcription backend exists;
+5. downloads the selected Whisper model from the official whisper.cpp model
+   repository on Hugging Face only for that fallback path;
+6. validates commands, model readability, and project write access;
+7. runs a short local transcription smoke test. If the Whisper Metal/GPU
+   backend fails, the wrapper retries with `whisper.cpp --no-gpu`.
 
 It does not install Homebrew automatically, request administrator privileges,
 upload media, or modify shell startup files. When Homebrew is missing, it stops
 and points to `https://brew.sh`.
 
-Homebrew may update its package metadata and install or upgrade transitive
-dependencies as part of a normal formula installation. Review Homebrew's plan
-before approving the command.
+The default Whisper `base` model is about 142 MB. Other documented model sizes
+range from roughly 75 MB to several gigabytes. Homebrew may update package
+metadata and install or upgrade transitive dependencies; depending on what is
+already present, the total network and disk requirement can range from hundreds
+of megabytes to several gigabytes. The read-only setup plan makes this risk
+visible before approval, although Homebrew determines the exact dependency set.
+
+Automatic selection prefers Parakeet. Override it for one run when needed:
+
+```bash
+VIDEO_FINDINGS_TRANSCRIBER=parakeet ./scripts/transcribe-local input.mov output.vtt
+VIDEO_FINDINGS_TRANSCRIBER=whisper ./scripts/transcribe-local input.mov output.vtt
+```
 
 Choose a different model when needed:
 

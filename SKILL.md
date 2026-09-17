@@ -19,13 +19,15 @@ enough.
 ## Workflow
 
 1. Run `scripts/check-environment --video <path>` before reading the recording.
-   On macOS, if dependencies are missing, ask before running
-   `scripts/setup-macos --install`. Installation changes the machine and the
-   Whisper model download uses the network.
+   On macOS, run `scripts/setup-macos` to show the read-only installation plan.
+   Prefer an already installed MacParakeet model. Explain every missing package,
+   the approximate model size, and that Homebrew dependencies can require up to
+   several gigabytes. Ask before running `scripts/setup-macos --install --yes`.
 2. Prefer a supplied `.vtt` or `.srt`, especially one downloaded with a Teams
    recording. If none exists, use `scripts/transcribe-local` or the end-to-end
-   `scripts/analyze-recording`; both use local `whisper.cpp`. Do not upload media
-   or transcript without explicit approval.
+   `scripts/analyze-recording`; both prefer ready local MacParakeet/Parakeet and
+   fall back to ready local `whisper.cpp`. Do not upload media or transcript
+   without explicit approval.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
    candidate windows, frames, `candidates.json`, and a draft report.

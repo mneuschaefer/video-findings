@@ -3,16 +3,23 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd "$script_dir/.." && pwd)
+source "$script_dir/lib/transcription-backends.sh"
 install=0
+assume_yes=0
 model_name=base
 
 usage() {
   cat <<'EOF'
-Usage: scripts/setup-macos [--install] [--model NAME]
+Usage: scripts/setup-macos [--install] [--yes] [--model NAME]
 
-Without --install this command only checks the environment.
-With --install it uses Homebrew for missing packages and downloads a local
-multilingual whisper.cpp model into models/. Network access is required.
+Without --install this command checks the environment and prints the plan.
+An existing MacParakeet installation with a downloaded Parakeet model is the
+preferred transcription backend and is reused without another model download.
+
+With --install, missing core packages are installed through Homebrew. If no
+local transcription backend is ready, whisper.cpp and a multilingual model are
+offered as the fallback. Interactive confirmation is required unless --yes is
+used after the plan has already been approved.
 
 Default model: base. Examples: tiny, base, small, large-v3-turbo-q5_0.
 EOF
@@ -21,6 +28,7 @@ EOF
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --install) install=1; shift ;;
+    --yes) assume_yes=1; shift ;;
     --model) model_name=${2:-}; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -32,23 +40,6 @@ if [[ "$(uname -s)" != Darwin ]]; then
   exit 1
 fi
 
-if [[ "$install" -eq 0 ]]; then
-  "$script_dir/check-environment"
-  printf '\nNo changes made. Run ./scripts/setup-macos --install to install missing dependencies.\n'
-  exit 0
-fi
-
-if ! command -v brew >/dev/null 2>&1; then
-  cat >&2 <<'EOF'
-Homebrew is required but was not found.
-Install it from https://brew.sh, then rerun:
-  ./scripts/setup-macos --install
-
-An agent should ask for approval before running Homebrew's remote installer.
-EOF
-  exit 1
-fi
-
 packages=()
 if ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)'; then
   packages+=(python)
@@ -56,8 +47,88 @@ fi
 if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
   packages+=(ffmpeg)
 fi
-if ! command -v whisper-cli >/dev/null 2>&1; then
-  packages+=(whisper.cpp)
+
+parakeet_cli=$(vf_find_macparakeet_cli || true)
+parakeet_model=""
+if [[ -n "$parakeet_cli" ]]; then
+  parakeet_model=$(vf_macparakeet_model "$parakeet_cli" || true)
+fi
+whisper_cli=$(vf_find_whisper_cli || true)
+model_path="$project_dir/models/ggml-${model_name}.bin"
+if [[ -n "${VIDEO_FINDINGS_MODEL_PATH:-}" ]]; then
+  model_path=$VIDEO_FINDINGS_MODEL_PATH
+fi
+
+need_whisper=0
+if [[ -n "$parakeet_cli" && -n "$parakeet_model" ]]; then
+  transcription_plan="Reuse MacParakeet with its installed Parakeet $parakeet_model model; no speech-model download."
+elif [[ -n "$whisper_cli" && -r "$model_path" ]]; then
+  transcription_plan="Reuse the existing whisper.cpp installation and model at $model_path."
+else
+  need_whisper=1
+  transcription_plan="Install whisper.cpp if needed and download ggml-${model_name}.bin as the fallback model."
+  if [[ -z "$whisper_cli" ]]; then
+    packages+=(whisper.cpp)
+  fi
+fi
+
+case "$model_name" in
+  tiny) model_size="about 75 MB" ;;
+  base) model_size="about 142 MB" ;;
+  small) model_size="about 466 MB" ;;
+  medium) model_size="about 1.5 GB" ;;
+  large*) model_size="roughly 1.5-3 GB, depending on the variant" ;;
+  *) model_size="size varies by model" ;;
+esac
+
+printf '\nInstallation plan\n'
+printf '  Transcription: %s\n' "$transcription_plan"
+if [[ "${#packages[@]}" -gt 0 ]]; then
+  printf '  Homebrew:      install %s\n' "${packages[*]}"
+  printf '  Disk/network:  Homebrew and transitive dependencies may require hundreds of MB to several GB.\n'
+else
+  printf '  Homebrew:      no missing formulae detected\n'
+fi
+if [[ "$need_whisper" -eq 1 && ! -r "$model_path" ]]; then
+  printf '  Model:         download %s (%s)\n' "ggml-${model_name}.bin" "$model_size"
+fi
+printf '  Privacy:       local processing; no recording is uploaded by these scripts\n'
+
+if [[ "$install" -eq 0 ]]; then
+  printf '\nEnvironment check\n'
+  "$script_dir/check-environment" || true
+  printf '\nNo changes made. After reviewing the plan, run ./scripts/setup-macos --install.\n'
+  exit 0
+fi
+
+changes_needed=0
+if [[ "${#packages[@]}" -gt 0 || ( "$need_whisper" -eq 1 && ! -r "$model_path" ) ]]; then
+  changes_needed=1
+fi
+
+if [[ "$changes_needed" -eq 1 && "$assume_yes" -eq 0 ]]; then
+  if [[ -t 0 ]]; then
+    printf '\nContinue with these downloads and machine changes? [y/N] '
+    read -r confirmation
+    case "$confirmation" in
+      y|Y|yes|YES) ;;
+      *) echo "Cancelled; no changes made."; exit 1 ;;
+    esac
+  else
+    echo "Approval required. Review the plan, then rerun with --install --yes." >&2
+    exit 1
+  fi
+fi
+
+if [[ "${#packages[@]}" -gt 0 ]]; then
+  if ! command -v brew >/dev/null 2>&1; then
+    cat >&2 <<'EOF'
+Homebrew is required but was not found. This script never installs Homebrew.
+Review https://brew.sh and install it separately if desired, then rerun the
+read-only plan before approving installation.
+EOF
+    exit 1
+  fi
 fi
 
 if [[ "${#packages[@]}" -gt 0 ]]; then
@@ -68,8 +139,7 @@ else
 fi
 
 mkdir -p "$project_dir/models"
-model_path="$project_dir/models/ggml-${model_name}.bin"
-if [[ ! -s "$model_path" ]]; then
+if [[ "$need_whisper" -eq 1 && ! -s "$model_path" ]]; then
   model_url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${model_name}.bin"
   temporary_path="$model_path.partial"
   printf 'Downloading multilingual whisper.cpp model %s...\n' "$model_name"
@@ -80,15 +150,19 @@ if [[ ! -s "$model_path" ]]; then
   fi
   mv "$temporary_path" "$model_path"
 else
-  printf 'Whisper model already present: %s\n' "$model_path"
+  if [[ "$need_whisper" -eq 1 ]]; then
+    printf 'Whisper model already present: %s\n' "$model_path"
+  else
+    printf 'No additional speech model download is needed.\n'
+  fi
 fi
 
 VIDEO_FINDINGS_MODEL_PATH="$model_path" "$script_dir/check-environment" --require-transcription
 
 smoke_dir=$(mktemp -d "${TMPDIR:-/tmp}/video-findings-setup.XXXXXX")
 trap 'rm -rf "$smoke_dir"' EXIT
-ffmpeg -hide_banner -loglevel error -y \
-  -f lavfi -i "anullsrc=r=16000:cl=mono" -t 0.5 "$smoke_dir/silence.wav"
+say -o "$smoke_dir/smoke.aiff" "Video Findings local transcription test."
+ffmpeg -hide_banner -loglevel error -y -i "$smoke_dir/smoke.aiff" "$smoke_dir/smoke.wav"
 VIDEO_FINDINGS_MODEL_PATH="$model_path" \
-  "$script_dir/transcribe-local" "$smoke_dir/silence.wav" "$smoke_dir/smoke.vtt" en >/dev/null
+  "$script_dir/transcribe-local" "$smoke_dir/smoke.wav" "$smoke_dir/smoke.vtt" en >/dev/null
 echo "Local transcription smoke test passed."

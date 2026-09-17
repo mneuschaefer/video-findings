@@ -1,5 +1,6 @@
 import importlib.util
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -77,6 +78,14 @@ class PipelineTests(unittest.TestCase):
             "transcribe-local",
         ):
             self.assertTrue(os.access(scripts / name, os.X_OK), name)
+
+    def test_shell_scripts_have_valid_syntax(self):
+        root = Path(__file__).parents[1]
+        scripts = list((root / "scripts").glob("*"))
+        scripts += list((root / "scripts" / "lib").glob("*.sh"))
+        for script in scripts:
+            if script.is_file():
+                subprocess.run(["bash", "-n", script], check=True)
 
 
 if __name__ == "__main__":

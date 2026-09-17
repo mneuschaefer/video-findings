@@ -9,33 +9,95 @@ fi
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd "$script_dir/.." && pwd)
+source "$script_dir/lib/transcription-backends.sh"
 input_media=$1
 output_vtt=$2
 language=${3:-auto}
-model_path=${VIDEO_FINDINGS_MODEL_PATH:-$project_dir/models/ggml-base.bin}
+requested_backend=${VIDEO_FINDINGS_TRANSCRIBER:-auto}
+model_path=$(vf_whisper_model_path "$project_dir")
 cpu_marker="$project_dir/models/.force-cpu"
 
 if [[ ! -f "$input_media" || ! -r "$input_media" ]]; then
   echo "Input is not a readable local file: $input_media" >&2
   exit 1
 fi
-if ! command -v whisper-cli >/dev/null 2>&1; then
-  echo "whisper-cli is missing. On macOS run: ./scripts/setup-macos --install" >&2
-  exit 1
-fi
-if [[ ! -f "$model_path" || ! -r "$model_path" ]]; then
-  echo "Whisper model is missing: $model_path" >&2
-  echo "On macOS run: ./scripts/setup-macos --install" >&2
-  exit 1
-fi
 case "$output_vtt" in
   *.vtt|*.VTT) ;;
   *) echo "Output must end in .vtt: $output_vtt" >&2; exit 2 ;;
+esac
+case "$requested_backend" in
+  auto|parakeet|whisper) ;;
+  *) echo "VIDEO_FINDINGS_TRANSCRIBER must be auto, parakeet, or whisper." >&2; exit 2 ;;
 esac
 
 mkdir -p "$(dirname "$output_vtt")"
 temporary_dir=$(mktemp -d "${TMPDIR:-/tmp}/video-findings.XXXXXX")
 trap 'rm -rf "$temporary_dir"' EXIT
+
+parakeet_cli=$(vf_find_macparakeet_cli || true)
+parakeet_model=""
+if [[ -n "$parakeet_cli" ]]; then
+  parakeet_model=$(vf_macparakeet_model "$parakeet_cli" || true)
+fi
+whisper_cli=$(vf_find_whisper_cli || true)
+
+backend=$requested_backend
+if [[ "$backend" == auto ]]; then
+  if [[ -n "$parakeet_cli" && -n "$parakeet_model" ]]; then
+    backend=parakeet
+  elif [[ -n "$whisper_cli" && -r "$model_path" ]]; then
+    backend=whisper
+  else
+    cat >&2 <<EOF
+No ready local transcription backend was found.
+Run ./scripts/setup-macos to inspect the installation plan. The setup reuses an
+installed MacParakeet model before offering the whisper.cpp fallback.
+EOF
+    exit 1
+  fi
+fi
+
+if [[ "$backend" == parakeet ]]; then
+  if [[ -z "$parakeet_cli" || -z "$parakeet_model" ]]; then
+    echo "MacParakeet with a downloaded Parakeet model is not available." >&2
+    exit 1
+  fi
+  parakeet_output="$temporary_dir/parakeet"
+  parakeet_log="$temporary_dir/macparakeet.log"
+  mkdir -p "$parakeet_output"
+  printf 'Using local transcription backend: MacParakeet (%s).\n' "$parakeet_model"
+  if ! DO_NOT_TRACK=1 MACPARAKEET_TELEMETRY=0 "$parakeet_cli" transcribe "$input_media" \
+    --format vtt \
+    --output-dir "$parakeet_output" \
+    --engine parakeet \
+    --parakeet-model "$parakeet_model" \
+    --speaker-detection off \
+    --no-history 2>"$parakeet_log"; then
+    cat "$parakeet_log" >&2
+    exit 1
+  fi
+  generated_vtt=$(find "$parakeet_output" -maxdepth 1 -type f -name '*.vtt' -print -quit)
+  if [[ -z "$generated_vtt" || ! -s "$generated_vtt" ]]; then
+    cat "$parakeet_log" >&2
+    echo "MacParakeet did not create a VTT transcript." >&2
+    exit 1
+  fi
+  mv "$generated_vtt" "$output_vtt"
+  printf 'Wrote %s\n' "$output_vtt"
+  exit 0
+fi
+
+if [[ -z "$whisper_cli" ]]; then
+  echo "whisper-cli is missing. On macOS run: ./scripts/setup-macos" >&2
+  exit 1
+fi
+if [[ ! -f "$model_path" || ! -r "$model_path" ]]; then
+  echo "Whisper model is missing: $model_path" >&2
+  echo "On macOS run: ./scripts/setup-macos" >&2
+  exit 1
+fi
+
+printf 'Using local transcription backend: whisper.cpp.\n'
 wav="$temporary_dir/audio.wav"
 output_base=${output_vtt%.*}
 
@@ -55,16 +117,15 @@ if [[ -f "$cpu_marker" && "${VIDEO_FINDINGS_USE_GPU:-0}" != 1 ]]; then
 fi
 
 if [[ "$force_cpu" == 1 ]]; then
-  whisper-cli --no-gpu "${whisper_args[@]}"
+  "$whisper_cli" --no-gpu "${whisper_args[@]}"
 else
   gpu_log="$temporary_dir/whisper-gpu.log"
-  if ! /bin/sh -c 'whisper-cli "$@"; result_code=$?; exit $result_code' \
-    video-findings-gpu "${whisper_args[@]}" 2>"$gpu_log"; then
+  if ! "$whisper_cli" "${whisper_args[@]}" 2>"$gpu_log"; then
     echo "GPU transcription is unavailable on this Mac; switching to the stable local CPU mode." >&2
     rm -f "$output_vtt"
     touch "$cpu_marker"
     echo "Saved CPU fallback marker: $cpu_marker" >&2
-    whisper-cli --no-gpu "${whisper_args[@]}"
+    "$whisper_cli" --no-gpu "${whisper_args[@]}"
   fi
 fi
 

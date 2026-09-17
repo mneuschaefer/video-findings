@@ -8,8 +8,10 @@ service or cloud agent receives audio, transcript text, or screenshots, those
 artifacts leave the machine and are subject to that provider's terms and data
 handling. Obtain the necessary consent and remove sensitive data before upload.
 
-Analysis commands perform no network calls and the package contains no
-telemetry. `scripts/setup-macos --install` is the explicit exception: Homebrew
-may fetch packages and the script downloads the selected Whisper model from the
-official whisper.cpp model repository. No recording, transcript, frame, or
-report is sent during setup.
+The package contains no telemetry. When it invokes an existing MacParakeet
+installation, it disables MacParakeet telemetry for that process and uses
+`--no-history`. `scripts/setup-macos --install` is the explicit network
+exception: when dependencies are missing, Homebrew may fetch approved packages
+and the fallback path may download the selected Whisper model from the official
+whisper.cpp model repository. The read-only setup plan reports this before any
+change. No recording, transcript, frame, or report is sent during setup.

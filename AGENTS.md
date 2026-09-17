@@ -13,6 +13,8 @@ the boundary between deterministic media processing and model interpretation.
 - Accept local QuickTime/macOS screen recordings and downloaded Teams recording
   files. Never fetch a Teams recording from a meeting service automatically.
 - Run `scripts/check-environment` before processing input. On macOS, offer
-  `scripts/setup-macos --install` when dependencies are missing; do not install
-  packages or download a model without the user's approval.
+  the read-only `scripts/setup-macos` plan when dependencies are missing. Reuse
+  a ready MacParakeet model before offering the Whisper fallback. State the
+  approximate download and warn that Homebrew dependencies may require several
+  gigabytes; use `scripts/setup-macos --install --yes` only after approval.
 - Run `make test` and `make demo` after behavior changes.

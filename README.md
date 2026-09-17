@@ -4,7 +4,7 @@
 
 > **Platform status:** The current release supports and is tested on macOS.
 > Its standard-library Python core and FFmpeg-based media pipeline are designed
-> to be portable, but setup, local Whisper transcription, and the complete
+> to be portable, but setup, local transcription, and the complete
 > workflow have not yet been adapted or verified for Linux or Windows.
 
 ![Video Findings: narrated video, selected evidence, reviewable finding](assets/video-findings-hero-editorial-v2.png)
@@ -15,7 +15,7 @@ Replace the placeholder with this repository's URL, then paste the complete
 prompt into your coding agent:
 
 ```text
-Clone <REPOSITORY_URL> into a local folder named video-findings and install it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos to inspect the environment, explain any machine-level changes, and only then run ./scripts/setup-macos --install with my approval. Finally run make test and make demo, keep all recordings local, and report the generated report path plus any missing dependency or permission.
+Clone <REPOSITORY_URL> into a local folder named video-findings and install it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos to inspect the environment and reuse an installed MacParakeet model when available. Explain the complete download plan and approximate sizes before making changes; only after my approval run ./scripts/setup-macos --install --yes. Finally run make test and make demo, keep all recordings local, and report the selected transcription backend plus any missing dependency or permission.
 ```
 
 Already downloaded the folder? Ask the agent:
@@ -26,7 +26,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## The use case
 
-The included `0.1.0` analysis profile starts with narrated UI reviews. The
+The included `0.1.1` analysis profile starts with narrated UI reviews. The
 underlying method is broader: use transcript cues to locate moments whose
 meaning or evidence depends on the matching visual state.
 
@@ -89,21 +89,27 @@ After reviewing the changes, install missing dependencies:
 ./scripts/setup-macos --install
 ```
 
+The command asks for confirmation. Agents may add `--yes` only after the user
+has reviewed and explicitly approved the displayed plan.
+
 | Dependency | Needed for | Setup behavior |
 |---|---|---|
 | Homebrew | Managed macOS installation | Must already exist; never installed silently |
 | Python 3.10+ | Transcript parsing and report generation | Installed only if missing or too old |
 | FFmpeg + FFprobe | MOV/MP4 probing, audio, frames | Installed only if missing |
-| `whisper.cpp` | Local transcription when no VTT/SRT exists | Optional when a transcript is supplied |
-| multilingual Whisper model | Local transcription | `base` model downloaded into `models/` |
+| MacParakeet + downloaded Parakeet model | Preferred local transcription when already installed | Detected and reused; nothing is downloaded by Video Findings |
+| `whisper.cpp` | Fallback local transcription | Offered only when no ready Parakeet or Whisper backend exists |
+| multilingual Whisper model | Fallback model | Defaults to `base` (about 142 MB) in `models/` |
 
 The deterministic Python core uses only the standard library. The setup script
 does not modify shell startup files, request administrator privileges, or
 upload media. Full details are in [`docs/setup-macos.md`](docs/setup-macos.md).
-The installer also runs a transcription smoke test. If the Metal backend fails,
-the transcription wrapper retries locally with `whisper.cpp --no-gpu` and
-remembers that stable project-local fallback. Homebrew itself may update
-metadata and transitive dependencies during an approved installation.
+Before changing the machine, it reports the chosen transcription backend,
+missing Homebrew formulae, the approximate model download, and the possibility
+that Homebrew plus transitive dependencies may consume hundreds of megabytes to
+several gigabytes. The installer also runs a transcription smoke test. If the
+Whisper Metal backend fails, the wrapper retries locally with
+`whisper.cpp --no-gpu` and remembers that stable project-local fallback.
 
 ## Two-minute smoke test
 
@@ -135,8 +141,9 @@ With narration but without a separate transcript:
   --output output/quicktime-review
 ```
 
-The script verifies the input, transcribes locally with `whisper.cpp`, selects
-candidate intervals, and extracts evidence frames.
+The script verifies the input, prefers an already installed MacParakeet model,
+falls back to a ready local `whisper.cpp` setup, selects candidate intervals,
+and extracts evidence frames.
 
 ## Analyze a downloaded Teams recording
 
@@ -209,7 +216,7 @@ Obsidian plugin, a cloud backend, or user accounts.
 
 ## Project status
 
-Version `0.1.0` is a portable macOS-oriented package and a testable V1
+Version `0.1.1` is a portable macOS-oriented package and a testable V1
 foundation with an initial UI-review profile. Deterministic preparation and
 local transcription are automated; nuanced visual verification remains an
 explicit agent or human task so uncertainty stays visible.
