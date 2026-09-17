@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 3 ]]; then
+  echo "Usage: $0 VIDEO TIMESTAMP_SECONDS OUTPUT_JPG" >&2
+  exit 2
+fi
+
+video=$1
+timestamp=$2
+output_jpg=$3
+
+mkdir -p "$(dirname "$output_jpg")"
+ffmpeg -hide_banner -loglevel error -y -ss "$timestamp" -i "$video" \
+  -frames:v 1 -q:v 2 "$output_jpg"
+printf 'Wrote %s\n' "$output_jpg"

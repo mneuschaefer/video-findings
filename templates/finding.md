@@ -7,6 +7,7 @@ Preserve direct quotes and visible UI labels in their original language. -->
 **Status:** Needs review  
 **Confidence:** {{ confidence }}  
 **Time range:** {{ time_range }}
+**Watch from:** [{{ watch_from }} in the original video]({{ original_video_link }})
 
 ### Observation
 
@@ -20,7 +21,7 @@ Preserve direct quotes and visible UI labels in their original language. -->
 
 {{ transcript_evidence }}
 
-{{ image_evidence }}
+{{ representative_image }}
 
 ### Suggested classification
 

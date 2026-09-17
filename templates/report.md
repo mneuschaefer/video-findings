@@ -5,6 +5,8 @@ Preserve direct quotes and visible UI labels in their original language. -->
 # Recorded review findings
 
 **Source:** {{ source }}  
+**Original video:** {{ original_video_link }}
+
 **Generated:** {{ generated_at }}  
 **Status:** Draft — human review required
 

@@ -7,6 +7,7 @@ video=""
 transcript=""
 output=""
 language=auto
+frame_mode=single
 
 usage() {
   cat <<'EOF'
@@ -15,6 +16,7 @@ Usage: scripts/analyze-recording --video PATH --output DIRECTORY [OPTIONS]
 Options:
   --transcript PATH   Existing VTT/SRT, for example from a Teams recording
   --language CODE     Transcription language when no transcript exists (default: auto)
+  --frame-mode MODE   single (default) or dense
   -h, --help          Show this help
 
 Examples:
@@ -29,10 +31,16 @@ while [[ "$#" -gt 0 ]]; do
     --transcript) transcript=${2:-}; shift 2 ;;
     --output) output=${2:-}; shift 2 ;;
     --language) language=${2:-}; shift 2 ;;
+    --frame-mode) frame_mode=${2:-}; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
+
+if [[ "$frame_mode" != "single" && "$frame_mode" != "dense" ]]; then
+  echo "Invalid --frame-mode: $frame_mode (expected single or dense)" >&2
+  exit 2
+fi
 
 if [[ -z "$video" || -z "$output" ]]; then
   usage >&2
@@ -56,7 +64,8 @@ fi
 python3 "$project_dir/src/video_findings.py" prepare \
   --video "$video" \
   --transcript "$transcript" \
-  --output "$output"
+  --output "$output" \
+  --frame-mode "$frame_mode"
 
 printf '\nPreparation ready: %s/transcript-cues.json\n' "$output"
 printf 'Heuristic leads: %s/report.md\n' "$output"

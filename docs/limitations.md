@@ -1,7 +1,8 @@
 # Limitations
 
 - Transcript-led search can miss purely visual problems that nobody mentions.
-- Sparse beginning/middle/end frames can miss short-lived state changes.
+- A representative screenshot can miss short-lived state changes. Inspect the
+  linked video interval or use dense frame mode for timing-dependent claims.
 - Reviewer expectations may be incorrect or outside the intended requirements.
 - Keyword candidates are intentionally simple, strongest for direct English
   wording, and are not final findings. Language-independent detection requires

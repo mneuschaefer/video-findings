@@ -36,7 +36,8 @@ must not be committed, packaged, or presented as project-owned sample media.
   clip successfully.
 - The local transcript produced one high-signal candidate around the spoken
   usability irritation.
-- The pipeline extracted three frames from the selected interval.
+- The pipeline extracts one representative frame per candidate by default.
+  Dense start/middle/end sampling remains available for timing diagnosis.
 - Visual inspection showed an existing note followed by creation of a blank
   note. This supports the interaction context but does not prove a defect.
 - The final classification is a possible onboarding/editor-discoverability

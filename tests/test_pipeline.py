@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 MODULE_PATH = Path(__file__).parents[1] / "src" / "video_findings.py"
@@ -94,12 +95,60 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(payload["cues"][1]["text"], "ここでは画面が変わりません。")
         self.assertEqual(payload["cues"][2]["text"], "هنا لا تتغير الشاشة.")
 
+    def test_single_frame_mode_writes_one_image_per_candidate(self):
+        candidate = MODULE.Candidate(
+            id="finding-001",
+            confidence="High",
+            reason="test",
+            windows=[{"start": 1.0, "end": 4.0}, {"start": 10.0, "end": 12.0}],
+        )
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(
+            MODULE.subprocess, "run"
+        ) as run:
+            MODULE.extract_frames(
+                Path("video.mp4"), Path(directory), candidate, 20.0, "single"
+            )
+        self.assertEqual(candidate.frames, ["assets/finding-001.jpg"])
+        run.assert_called_once()
+
+    def test_dense_frame_mode_remains_available(self):
+        candidate = MODULE.Candidate(
+            id="finding-001",
+            confidence="High",
+            reason="test",
+            windows=[{"start": 1.0, "end": 4.0}, {"start": 10.0, "end": 12.0}],
+        )
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(
+            MODULE.subprocess, "run"
+        ) as run:
+            MODULE.extract_frames(
+                Path("video.mp4"), Path(directory), candidate, 20.0, "dense"
+            )
+        self.assertEqual(len(candidate.frames), 6)
+        self.assertEqual(run.call_count, 6)
+
+    def test_report_links_original_video_at_exact_start_time(self):
+        candidate = MODULE.Candidate(
+            id="finding-001",
+            confidence="High",
+            reason="test",
+            windows=[{"start": 22.72, "end": 31.52}],
+            frames=["assets/finding-001.jpg"],
+        )
+        report = MODULE.render_report(
+            "review.mp4", [candidate], "../../review.mp4"
+        )
+        self.assertIn("../../review.mp4#t=22.720", report)
+        self.assertIn("continue from 00:00:22.720", report)
+        self.assertIn("Representative visual evidence", report)
+
     def test_user_facing_scripts_are_executable(self):
         scripts = Path(__file__).parents[1] / "scripts"
         for name in (
             "analyze-recording",
             "check-environment",
             "extract-audio",
+            "extract-frame",
             "extract-frames",
             "package-release",
             "setup-macos",

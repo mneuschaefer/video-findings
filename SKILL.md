@@ -30,19 +30,25 @@ enough.
    without explicit approval.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
-   `transcript-cues.json`, optional keyword leads, frames for those leads, and a
-   preparation report.
+   `transcript-cues.json`, optional keyword leads, one initial screenshot per
+   lead, and a preparation report. The default `single` frame mode keeps the
+   review compact; use `--frame-mode dense` only when the user explicitly asks
+   for many samples or when a timing-dependent claim requires diagnosis.
 4. Read [prompts/detect-findings.md](prompts/detect-findings.md), then use the AI
    to review **every cue in the complete `transcript-cues.json` semantically**.
    Resolve vague descriptions from surrounding context. Keyword matches are
    optional hints only; they are neither findings nor a coverage boundary.
    Detect findings in any transcript language. Unless the user requested
    another language, write the findings in the dominant transcript language.
-5. For AI-selected moments not covered by the heuristic frames, run
-   `scripts/extract-frames VIDEO START END OUTPUT_DIR SLUG`. Then inspect all
-   selected frames and read
-   [prompts/verify-evidence.md](prompts/verify-evidence.md). If frames do not
-   prove a claim, say so; never invent UI state between sampled frames.
+5. For each AI-selected finding, choose one timestamp that shows the most
+   informative visible state and run
+   `scripts/extract-frame VIDEO TIMESTAMP OUTPUT_JPG`. If the first image is
+   ambiguous, inspect up to three temporary alternatives or the relevant video
+   interval, then keep only the strongest representative image in the final
+   report. Read [prompts/verify-evidence.md](prompts/verify-evidence.md). Use
+   `scripts/extract-frames` for dense diagnosis only, not for the normal report.
+   If visual evidence does not prove a claim, say so; never invent UI state
+   between samples.
 6. Write the final report using [templates/report.md](templates/report.md) and
    [templates/finding.md](templates/finding.md).
 
@@ -65,5 +71,9 @@ evaluation notes when testing the workflow.
 ## Output contract
 
 Store the report as Markdown, machine-readable candidates/findings as JSON, and
-images in an adjacent `assets/` directory. Use relative links so the result
-works in GitHub and Obsidian.
+exactly one representative image per final finding in an adjacent `assets/`
+directory. Every finding must also reference the original video and give the
+exact timestamp from which a reviewer can continue watching. Use relative
+links for local output so the result works in GitHub and Obsidian. Additional
+diagnostic frames may be generated temporarily, but include them in the final
+report only when the user explicitly requests dense evidence.

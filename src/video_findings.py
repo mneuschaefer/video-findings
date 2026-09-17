@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 import subprocess
 from dataclasses import asdict, dataclass, field
@@ -160,13 +161,42 @@ def video_duration(video: Path) -> float:
     return float(result.stdout.strip())
 
 
-def extract_frames(video: Path, output: Path, candidate: Candidate, duration: float) -> None:
+def extract_frames(
+    video: Path,
+    output: Path,
+    candidate: Candidate,
+    duration: float,
+    frame_mode: str = "single",
+) -> None:
     frame_dir = output / "assets"
     frame_dir.mkdir(parents=True, exist_ok=True)
-    for window_number, window in enumerate(candidate.windows, 1):
+    safe_windows: list[dict[str, float]] = []
+    for window in candidate.windows:
         safe_end = min(window["end"], max(0.0, duration - 0.04))
         safe_start = min(window["start"], safe_end)
+        window["start"] = safe_start
         window["end"] = safe_end
+        safe_windows.append(window)
+
+    if frame_mode == "single":
+        window = max(safe_windows, key=lambda item: item["end"] - item["start"])
+        second = (window["start"] + window["end"]) / 2
+        filename = f"{candidate.id}.jpg"
+        destination = frame_dir / filename
+        subprocess.run(
+            [
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-ss", f"{second:.3f}", "-i", str(video), "-frames:v", "1",
+                "-q:v", "2", str(destination),
+            ],
+            check=True,
+        )
+        candidate.frames.append(f"assets/{filename}")
+        return
+
+    for window_number, window in enumerate(safe_windows, 1):
+        safe_start = window["start"]
+        safe_end = window["end"]
         points = {
             "start": safe_start,
             "middle": (safe_start + safe_end) / 2,
@@ -186,7 +216,11 @@ def extract_frames(video: Path, output: Path, candidate: Candidate, duration: fl
             candidate.frames.append(f"assets/{filename}")
 
 
-def render_report(source: str, candidates: list[Candidate]) -> str:
+def render_report(
+    source: str,
+    candidates: list[Candidate],
+    source_link: str | None = None,
+) -> str:
     blocks: list[str] = []
     for number, candidate in enumerate(candidates, 1):
         quote = "\n> ".join(candidate.excerpts)
@@ -194,6 +228,19 @@ def render_report(source: str, candidates: list[Candidate]) -> str:
         windows = ", ".join(
             f"{format_timestamp(window['start'])}–{format_timestamp(window['end'])}"
             for window in candidate.windows
+        )
+        watch_from = min(window["start"] for window in candidate.windows)
+        if source_link:
+            video_reference = (
+                f"[Open the original video]({source_link}#t={watch_from:.3f}) — "
+                f"continue from {format_timestamp(watch_from)}"
+            )
+        else:
+            video_reference = "No source video supplied."
+        evidence_heading = (
+            "Representative visual evidence"
+            if len(candidate.frames) <= 1
+            else "Visual evidence samples"
         )
         blocks.append(
             f"## {number}. Candidate finding\n\n"
@@ -204,7 +251,8 @@ def render_report(source: str, candidates: list[Candidate]) -> str:
             f"### Observation\n\nTo be verified against the recording.\n\n"
             f"### Reviewer expectation\n\nTo be separated from observed behavior.\n\n"
             f"### Transcript evidence\n\n> {quote}\n\n"
-            f"### Visual evidence candidates\n\n{images or 'No video supplied.'}\n\n"
+            f"### {evidence_heading}\n\n{images or 'No video supplied.'}\n\n"
+            f"### Original video\n\n{video_reference}\n\n"
             f"### Suggested classification\n\n{candidate.reason}; interpretation pending.\n\n"
             f"### Human decision\n\n- [ ] Confirm as issue\n- [ ] Rewrite\n- [ ] Discard\n"
         )
@@ -241,7 +289,13 @@ def prepare(args: argparse.Namespace) -> int:
     if video:
         duration = video_duration(video)
         for candidate in candidates:
-            extract_frames(video, output, candidate, duration)
+            extract_frames(
+                video,
+                output,
+                candidate,
+                duration,
+                getattr(args, "frame_mode", "single"),
+            )
     payload = {
         "schema_version": 1,
         "source_transcript": str(transcript),
@@ -252,7 +306,12 @@ def prepare(args: argparse.Namespace) -> int:
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     (output / "report.md").write_text(
-        render_report(video.name if video else transcript.name, candidates), encoding="utf-8"
+        render_report(
+            video.name if video else transcript.name,
+            candidates,
+            os.path.relpath(video, output) if video else None,
+        ),
+        encoding="utf-8",
     )
     print(
         f"Prepared {len(cues)} transcript cue(s) and "
@@ -269,6 +328,12 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--video", help="optional MP4/MOV recording")
     command.add_argument("--output", required=True, help="output directory")
     command.add_argument("--padding", type=float, default=2.0, help="seconds around cues")
+    command.add_argument(
+        "--frame-mode",
+        choices=("single", "dense"),
+        default="single",
+        help="one representative image per heuristic lead (default) or three per window",
+    )
     command.set_defaults(handler=prepare)
     return parser
 

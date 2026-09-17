@@ -9,6 +9,29 @@
 
 ![Video Findings: narrated video, selected evidence, reviewable finding](assets/video-findings-hero-editorial-v2.png)
 
+## See it on a narrated review
+
+[![Watch the narrated Video Findings demo](assets/narrated-demo-preview.png)](assets/narrated-demo.mp4)
+
+Select the preview to watch the MP4 with sound.
+
+### Example output
+
+**[Open the complete example report](examples/narrated-demo-report.md)**
+
+> **Discount message overlaps the order total**
+>
+> **Confidence:** High · **Watch from:** 01:08.720
+>
+> The `Discount applied: SAVE10` message visibly covers the total label and
+> amount, making the final amount difficult to read.
+
+[![Representative evidence: the discount confirmation overlaps the total](examples/assets/discount-overlap.jpg)](examples/narrated-demo-report.md)
+
+The full example contains two findings. Each has one representative screenshot
+and an exact link back to the original video, so a reviewer can inspect the
+motion and audio instead of relying on a stack of near-identical images.
+
 ## Install it with Codex or Claude Code
 
 Replace the placeholder with this repository's URL, then paste the complete
@@ -26,7 +49,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## The use case
 
-The included `0.1.2` analysis profile starts with narrated UI reviews. The
+The included `0.1.3` analysis profile starts with narrated UI reviews. The
 underlying method is broader: use transcript cues to locate moments whose
 meaning or evidence depends on the matching visual state.
 
@@ -38,7 +61,8 @@ the reviewer merely expected.
 Video Findings turns that work into a small, inspectable evidence pipeline:
 
 > Use speech to find likely problem moments. Inspect only those video windows.
-> Produce reviewable Markdown findings with timestamps and screenshots.
+> Produce reviewable Markdown findings with an exact video timestamp and one
+> representative screenshot per finding.
 
 It is not another meeting summarizer and does not create final tickets
 automatically. Every result remains a draft for a product, QA, UX, or
@@ -136,7 +160,7 @@ open output/demo/report.md
 
 The demo creates a synthetic recording locally, reads its supplied VTT,
 deduplicates a repeated issue while retaining separate evidence windows, and
-writes:
+writes one initial screenshot per candidate by default:
 
 ```text
 output/demo/
@@ -161,7 +185,14 @@ The script verifies the input, prefers an already installed MacParakeet model,
 falls back to a ready local `whisper.cpp` setup, preserves every timestamped
 cue, and creates optional keyword leads. The agent—not the keyword script—then
 reviews the complete transcript semantically and extracts any additional visual
-evidence required for the final findings.
+evidence required for the final findings. Each final finding normally contains
+one representative screenshot plus a link to the original video and the exact
+timestamp from which to continue watching.
+
+If a timing-dependent problem needs closer diagnosis, add
+`--frame-mode dense` to create start, middle, and end samples for each candidate
+window. This is an inspection mode; multiple near-identical screenshots should
+not be copied into the final report unless the user explicitly asks for them.
 
 ## Analyze a downloaded Teams recording
 
@@ -234,7 +265,7 @@ Obsidian plugin, a cloud backend, or user accounts.
 
 ## Project status
 
-Version `0.1.2` is a portable macOS-oriented package and a testable V1
+Version `0.1.3` is a portable macOS-oriented package and a testable V1
 foundation with an initial UI-review profile. Deterministic preparation and
 local transcription are automated; nuanced visual verification remains an
 explicit agent or human task so uncertainty stays visible.
