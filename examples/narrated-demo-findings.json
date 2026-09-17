@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "source_video": "https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157",
+  "transcript": "narrated-demo-transcript.md",
+  "output_language": "English",
+  "findings": [
+    {
+      "id": "finding-001",
+      "title": "Continue provides no visible response",
+      "status": "Needs review",
+      "confidence": "Medium",
+      "evidence_need": "dynamic",
+      "time_ranges": [
+        {"start": 22.72, "end": 31.52},
+        {"start": 46.72, "end": 53.36}
+      ],
+      "reported_issue": "The reviewer says that pressing Continue produces no visible response and that a second attempt also does not work.",
+      "observation": "The checkout remains on step 2 of 3 in both sampled states. The recording has no visible click indicator.",
+      "reviewer_expectation": "Either the next step or a clear error message.",
+      "transcript_evidence": [
+        "00:22.720–00:31.520: I select standard delivery and press continue. Nothing happens. There is no visible response, so I cannot tell whether the click was registered.",
+        "00:46.720–00:53.360: I try continue again. The button still does not work. I would expect either the next step or a clear error message."
+      ],
+      "unknown_context": [
+        "Whether the input event was registered",
+        "The intended checkout navigation",
+        "The root cause"
+      ],
+      "interpretation": "Possible interaction-feedback or checkout-navigation failure.",
+      "representative_image": "assets/continue-no-response.jpg",
+      "original_video_timestamp": 22.72,
+      "optional_clip": null
+    },
+    {
+      "id": "finding-002",
+      "title": "Discount message overlaps the order total",
+      "status": "Needs review",
+      "confidence": "High",
+      "evidence_need": "static",
+      "time_ranges": [
+        {"start": 68.72, "end": 78.56}
+      ],
+      "reported_issue": "The reviewer says that the discount message overlaps the total and makes the final amount difficult to read.",
+      "observation": "The Discount applied: SAVE10 message visibly covers the total label and amount.",
+      "reviewer_expectation": "The final amount should remain readable.",
+      "transcript_evidence": [
+        "01:08.720–01:18.560: There is another issue in the order summary. The discount message overlaps the total, which makes the final amount difficult to read."
+      ],
+      "unknown_context": [
+        "The intended placement or duration of the discount message",
+        "The responsible component",
+        "The root cause"
+      ],
+      "interpretation": "Layout and readability defect in the order summary.",
+      "representative_image": "assets/discount-overlap.jpg",
+      "original_video_timestamp": 68.72,
+      "optional_clip": null
+    }
+  ]
+}

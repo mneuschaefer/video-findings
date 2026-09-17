@@ -57,9 +57,9 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-The `0.1.4` analysis profile is designed for narrated UI reviews. The same
-method also works when a spoken comment only makes sense together with the
-matching image or video segment.
+Version `0.1.5` works with narrated recordings in which spoken content only
+makes sense together with the matching image or video segment. UI reviews are
+the included tested example, not a restriction on how the skill can be used.
 
 A 30-minute review may contain only five useful findings among hundreds of
 spoken sentences. Someone then has to find those moments, capture evidence,
@@ -71,9 +71,11 @@ Video Findings narrows that work down to a few reviewable steps:
 > Produce reviewable Markdown findings with an exact video timestamp and one
 > representative screenshot per finding.
 
-The tool creates draft findings, not final tickets or general meeting
-summaries. A product, QA, UX, or requirements professional still decides which
-findings to confirm, rewrite, or discard.
+The tool creates detailed draft findings that stay close to what participants
+said and what the recording shows. It does not invent a product, requirement,
+severity, or expected behavior when that context is missing. The same source
+transcript can later be used to regenerate the report or convert selected
+findings into another format.
 
 ## Supported local files
 
@@ -214,9 +216,17 @@ output/demo/
 ├── assets/
 │   └── finding-*.jpg
 ├── candidates.json
+├── transcript-source.vtt
 ├── transcript-cues.json
+├── transcript.md
 └── report.md
 ```
+
+The final AI-reviewed output also includes `findings.json`. The complete
+timestamped transcript is preserved so reports, summaries, tickets, or other
+formats can be generated again without retranscribing the recording. See
+[`docs/output-artifacts.md`](docs/output-artifacts.md) for the complete artifact
+contract.
 
 ## Analyze a QuickTime or macOS screen recording
 
@@ -236,10 +246,12 @@ finding. The keyword script does not make that decision. Each final finding
 normally contains one representative screenshot, a link to the original video,
 and the exact timestamp from which to continue watching.
 
-For closer inspection of a timing-dependent problem, add
-`--frame-mode dense` to create start, middle, and end samples for each candidate
-window. This mode is for inspection. The final report should only include
-multiple similar screenshots when the user asks for them.
+The first pass stays sparse and marks timing-dependent findings as dynamic. It
+does not create clips automatically. A user can select a finding afterwards,
+for example: "Extract finding 3 as a short clip with audio and convert it to my
+ticket format." Add `--no-audio` when a silent attachment is preferred. Dense
+frames remain available for diagnosis, but the report still uses one
+representative image unless the user asks for more.
 
 ## Analyze a downloaded Teams recording
 
@@ -303,6 +315,10 @@ They use the network only when the user approves the installation of Homebrew
 packages or a speech model. The complete workflow stays local only when the
 agent that interprets the transcript is also local.
 
+The workflow assumes that the user has handled any notice or permission needed
+for recording. Participants should be told when a meeting or group session is
+being recorded. This note does not block analysis of an existing recording.
+
 Sending audio, transcripts, or screenshots to a cloud agent means those
 artifacts leave the machine. See [`docs/privacy.md`](docs/privacy.md) and
 [`docs/limitations.md`](docs/limitations.md).
@@ -313,9 +329,9 @@ accounts.
 
 ## Project status
 
-Version `0.1.4` is a portable, testable V1 foundation for macOS, with an
-initial profile for UI reviews. It automates deterministic preparation and
-local transcription. An agent or person still performs the visual review, so
+Version `0.1.5` is a portable, testable V1 foundation for macOS. UI reviews are
+the included tested example. It automates deterministic preparation and local
+transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.
 
 ## License

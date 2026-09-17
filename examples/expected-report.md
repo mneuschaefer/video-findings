@@ -14,3 +14,9 @@ The generated report is only a preparation artifact. The agent must also review
 the complete `transcript-cues.json`, including wording not caught by keyword
 matching, inspect the selected frames, and write the final findings in the
 transcript language unless another output language was requested.
+
+The completed first pass preserves the full transcript as source VTT, readable
+Markdown, and cue JSON. It produces a detailed `report.md`, reusable
+`findings.json`, and one representative image per finding. Findings that depend
+on timing or motion are marked `dynamic`; clips are offered and generated only
+after the user selects a finding.

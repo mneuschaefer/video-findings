@@ -4,10 +4,15 @@ Preserve direct quotes and visible UI labels in their original language. -->
 
 ## {{ title }}
 
-**Status:** Needs review  
-**Confidence:** {{ confidence }}  
-**Time range:** {{ time_range }}
-**Watch from:** [{{ watch_from }} in the original video]({{ original_video_link }})
+- **Status:** Needs review
+- **Confidence:** {{ confidence }}
+- **Evidence need:** {{ evidence_need }}
+- **Time range:** {{ time_range }}
+- **Watch from:** [{{ watch_from }} in the original video]({{ original_video_link }})
+
+### Reported issue
+
+{{ reported_issue }}
 
 ### Observation
 
@@ -16,6 +21,10 @@ Preserve direct quotes and visible UI labels in their original language. -->
 ### Reviewer expectation
 
 {{ reviewer_expectation }}
+
+### Unknown or unstated context
+
+{{ unknown_context }}
 
 ### Evidence
 
@@ -26,6 +35,10 @@ Preserve direct quotes and visible UI labels in their original language. -->
 ### Suggested classification
 
 {{ interpretation }}
+
+### Optional follow-up
+
+{{ optional_follow_up }}
 
 ### Human decision
 

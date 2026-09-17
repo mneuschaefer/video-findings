@@ -3,10 +3,15 @@
 FFmpeg processing and the included CLI are local. Existing VTT/SRT files avoid
 an unnecessary transcription step.
 
+The workflow assumes the user has handled any notice or permission required for
+recording participants. When a meeting or group session is recorded, tell the
+participants that recording is taking place. This is a usage note, not an
+analysis blocker.
+
 The end-to-end workflow is not automatically local. If a cloud transcription
-service or cloud agent receives audio, transcript text, or screenshots, those
-artifacts leave the machine and are subject to that provider's terms and data
-handling. Obtain the necessary consent and remove sensitive data before upload.
+service or cloud agent receives audio, transcript text, screenshots, or clips,
+those artifacts leave the machine and are subject to that provider's terms and
+data handling. External uploads require explicit user approval.
 
 The package contains no telemetry. When it invokes an existing MacParakeet
 installation, it disables MacParakeet telemetry for that process and uses

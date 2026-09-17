@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+video=""
+start=""
+end=""
+output=""
+include_audio=1
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/extract-clip --video PATH --start TIME --end TIME --output PATH [--no-audio]
+
+Extract one selected finding interval as a short MP4. Audio is preserved by
+default; use --no-audio for a silent ticket attachment.
+
+TIME accepts seconds or HH:MM:SS.mmm.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --video) video=${2:-}; shift 2 ;;
+    --start) start=${2:-}; shift 2 ;;
+    --end) end=${2:-}; shift 2 ;;
+    --output) output=${2:-}; shift 2 ;;
+    --no-audio) include_audio=0; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$video" || -z "$start" || -z "$end" || -z "$output" ]]; then
+  usage >&2
+  exit 2
+fi
+if [[ ! -r "$video" ]]; then
+  echo "Video is not readable: $video" >&2
+  exit 1
+fi
+
+read -r start_seconds duration < <(python3 - "$start" "$end" <<'PY'
+import sys
+
+def seconds(value: str) -> float:
+    parts = value.replace(",", ".").split(":")
+    if len(parts) == 1:
+        return float(parts[0])
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + float(parts[1])
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+    raise ValueError(f"Invalid timestamp: {value}")
+
+start = seconds(sys.argv[1])
+end = seconds(sys.argv[2])
+if start < 0 or end <= start:
+    raise SystemExit("End timestamp must be greater than the non-negative start timestamp.")
+print(f"{start:.3f} {end - start:.3f}")
+PY
+)
+
+mkdir -p "$(dirname "$output")"
+
+if ffmpeg -hide_banner -encoders 2>/dev/null | grep -q 'h264_videotoolbox'; then
+  video_codec=(-c:v h264_videotoolbox -b:v 4M)
+else
+  video_codec=(-c:v libx264 -preset fast -crf 20)
+fi
+
+audio_codec=(-c:a aac -b:a 128k)
+if [[ "$include_audio" -eq 0 ]]; then
+  audio_codec=(-an)
+fi
+
+ffmpeg -hide_banner -loglevel error -y \
+  -ss "$start_seconds" -i "$video" -t "$duration" \
+  "${video_codec[@]}" "${audio_codec[@]}" -movflags +faststart "$output"
+
+printf 'Wrote %s (%s to %s, audio: %s)\n' \
+  "$output" "$start" "$end" "$([[ "$include_audio" -eq 1 ]] && echo yes || echo no)"

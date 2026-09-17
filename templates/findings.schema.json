@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mneuschaefer/video-findings/templates/findings.schema.json",
+  "title": "Video Findings results",
+  "type": "object",
+  "required": ["schema_version", "source_video", "transcript", "findings"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "source_video": {"type": ["string", "null"]},
+    "transcript": {"type": "string"},
+    "output_language": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "confidence",
+          "evidence_need",
+          "time_ranges",
+          "reported_issue",
+          "transcript_evidence",
+          "unknown_context"
+        ],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "status": {"type": "string"},
+          "confidence": {"enum": ["High", "Medium", "Low"]},
+          "evidence_need": {"enum": ["static", "dynamic"]},
+          "time_ranges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["start", "end"],
+              "properties": {
+                "start": {"type": "number", "minimum": 0},
+                "end": {"type": "number", "minimum": 0}
+              }
+            }
+          },
+          "reported_issue": {"type": "string"},
+          "observation": {"type": ["string", "null"]},
+          "reviewer_expectation": {"type": ["string", "null"]},
+          "transcript_evidence": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "unknown_context": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "interpretation": {"type": ["string", "null"]},
+          "representative_image": {"type": ["string", "null"]},
+          "original_video_timestamp": {"type": "number", "minimum": 0},
+          "optional_clip": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

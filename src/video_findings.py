@@ -8,6 +8,7 @@ import html
 import json
 import os
 import re
+import shutil
 import subprocess
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -18,6 +19,7 @@ TIMESTAMP_RE = re.compile(
     r"(?P<start>\d{2}:\d{2}(?::\d{2})?[.,]\d{3})\s+-->\s+"
     r"(?P<end>\d{2}:\d{2}(?::\d{2})?[.,]\d{3})"
 )
+VTT_SPEAKER_RE = re.compile(r"<v(?:\.[^ >]+)?\s+([^>]+)>", re.IGNORECASE)
 STRONG_PATTERNS = (
     r"\bnothing happens\b",
     r"\bno (?:visible )?response\b",
@@ -42,6 +44,7 @@ class Cue:
     start: float
     end: float
     text: str
+    speaker: str | None = None
 
 
 @dataclass
@@ -89,9 +92,11 @@ def parse_transcript(path: Path) -> list[Cue]:
             text_lines.append(lines[index].strip())
             index += 1
         raw = " ".join(text_lines)
+        speaker_match = VTT_SPEAKER_RE.search(raw)
+        speaker = html.unescape(speaker_match.group(1)).strip() if speaker_match else None
         clean = html.unescape(re.sub(r"<[^>]+>", "", raw)).strip()
         if clean:
-            cues.append(Cue(start, end, clean))
+            cues.append(Cue(start, end, clean, speaker))
     if not cues:
         raise ValueError(f"No timestamped cues found in {path}")
     return cues
@@ -271,19 +276,47 @@ def render_report(
     )
 
 
+def render_transcript(source: str, cues: list[Cue]) -> str:
+    blocks: list[str] = []
+    for cue in cues:
+        speaker = f" · **{cue.speaker}**" if cue.speaker else ""
+        blocks.append(
+            f"**{format_timestamp(cue.start)}–{format_timestamp(cue.end)}**"
+            f"{speaker}\n\n{cue.text}"
+        )
+    return (
+        "# Full timestamped transcript\n\n"
+        f"**Source:** {source}  \n"
+        f"**Generated:** {datetime.now(timezone.utc).isoformat()}  \n"
+        "**Coverage:** Every timestamped cue from the source transcript\n\n"
+        "This transcript is the reusable source for reports and other derived "
+        "artifacts. It preserves the source language and does not add product "
+        "context.\n\n"
+        + "\n\n".join(blocks)
+        + "\n"
+    )
+
+
 def prepare(args: argparse.Namespace) -> int:
     transcript = Path(args.transcript).resolve()
     output = Path(args.output).resolve()
     video = Path(args.video).resolve() if args.video else None
     output.mkdir(parents=True, exist_ok=True)
     cues = parse_transcript(transcript)
+    transcript_copy = output / f"transcript-source{transcript.suffix.lower()}"
+    if transcript != transcript_copy:
+        shutil.copy2(transcript, transcript_copy)
     cue_payload = {
         "schema_version": 1,
         "source_transcript": str(transcript),
+        "source_transcript_file": transcript_copy.name,
         "cues": [asdict(cue) for cue in cues],
     }
     (output / "transcript-cues.json").write_text(
         json.dumps(cue_payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    (output / "transcript.md").write_text(
+        render_transcript(transcript.name, cues), encoding="utf-8"
     )
     candidates = detect_candidates(cues, args.padding)
     if video:

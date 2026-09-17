@@ -1,14 +1,16 @@
 ---
 name: video-findings
-description: Use transcript cues to turn a local narrated MOV/MP4 video and optional VTT/SRT transcript into evidence-backed Markdown findings with timestamps and screenshots. Use when the visual state is necessary to understand or verify what is said, especially for product, QA, UX, requirements, support, or process review recordings; do not use for general meeting summaries.
+description: Turn a local narrated MOV/MP4 video and optional VTT/SRT transcript into a complete timestamped transcript, evidence-backed findings, and reusable Markdown/JSON artifacts. Use whenever spoken content and the matching visual state should be preserved, reviewed, or transformed into structured results.
 ---
 
 # Video Findings
 
-Create reviewable visual findings from a narrated recording. The included
-profile specializes in UI reviews: treat the transcript as a search index for
-the video, find likely problem moments in speech first, then inspect only small
-visual windows around those moments.
+Create reusable source artifacts and reviewable visual findings from a narrated
+recording. Treat the complete transcript as an index for the video, find
+relevant moments in speech, and inspect the matching visual windows. The skill
+can be used for UI reviews, demonstrations, research sessions, support cases,
+process reviews, recorded discussions, or other recordings where speech and
+visual context belong together.
 
 Supported inputs include QuickTime Player or macOS screen recordings saved as
 `.mov`, Teams recordings downloaded to the computer as `.mp4`, and ordinary
@@ -34,16 +36,22 @@ enough.
    without explicit approval.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
-   `transcript-cues.json`, optional keyword leads, one initial screenshot per
-   lead, and a preparation report. The default `single` frame mode keeps the
-   review compact; use `--frame-mode dense` only when the user explicitly asks
-   for many samples or when a timing-dependent claim requires diagnosis.
+   `transcript.md`, `transcript-cues.json`, an archived source VTT/SRT, optional
+   keyword leads, one initial screenshot per lead, and a preparation report.
+   These transcript artifacts are the reusable source from which reports can be
+   regenerated later. The default `single` frame mode keeps the review compact;
+   use `--frame-mode dense` only when the user explicitly asks for many samples
+   or when a timing-dependent claim requires diagnosis.
 4. Read [prompts/detect-findings.md](prompts/detect-findings.md), then use the AI
    to review **every cue in the complete `transcript-cues.json` semantically**.
-   Resolve vague descriptions from surrounding context. Keyword matches are
-   optional hints only; they are neither findings nor a coverage boundary.
-   Detect findings in any transcript language. Unless the user requested
-   another language, write the findings in the dominant transcript language.
+   Capture every described bug or actionable finding, including claims that
+   visual evidence cannot fully confirm, and mark their evidentiary status.
+   Stay close to the speaker's wording. Never invent a product name, feature,
+   user role, requirement, severity, root cause, or expected behavior when the
+   recording does not establish it. Keyword matches are optional hints only;
+   they are neither findings nor a coverage boundary. Detect findings in any
+   transcript language. Unless the user requested another language, write the
+   findings in the dominant transcript language.
 5. For each AI-selected finding, choose one timestamp that shows the most
    informative visible state and run
    `scripts/extract-frame VIDEO TIMESTAMP OUTPUT_JPG`. If the first image is
@@ -52,9 +60,19 @@ enough.
    report. Read [prompts/verify-evidence.md](prompts/verify-evidence.md). Use
    `scripts/extract-frames` for dense diagnosis only, not for the normal report.
    If visual evidence does not prove a claim, say so; never invent UI state
-   between samples.
-6. Write the final report using [templates/report.md](templates/report.md) and
-   [templates/finding.md](templates/finding.md).
+   between samples. Mark timing-dependent findings as `dynamic` and offer a
+   short follow-up clip instead of creating it automatically. When the user
+   selects a finding, run `scripts/extract-clip --video ... --start ... --end
+   ... --output ...`; preserve audio by default or add `--no-audio` when
+   requested. Natural requests such as "Give me the clip for finding 3 and put
+   it into my ticket format" are sufficient selection.
+6. Write a detailed final `report.md` using
+   [templates/report.md](templates/report.md) and
+   [templates/finding.md](templates/finding.md). Also write `findings.json`
+   according to [templates/findings.schema.json](templates/findings.schema.json)
+   so other tools can reuse the results. Link the full `transcript.md` from the
+   report. Derived reports may be regenerated from `transcript-cues.json` and
+   the original recording without retranscribing the source.
 
 Read [docs/setup-macos.md](docs/setup-macos.md) when installing on a new Mac and
 [docs/input-formats.md](docs/input-formats.md) when input origin or transcript
@@ -66,6 +84,9 @@ alignment is unclear.
 - **Reviewer expectation:** what the reviewer says should happen.
 - **Interpretation:** a tentative classification or explanation.
 - **Human decision:** remains open unless the user explicitly decides it.
+- **Unknown context:** product, feature, requirement, cause, or intent that the
+  recording does not establish. Leave it unknown instead of completing it from
+  plausibility.
 
 Use `Needs review` by default. Deduplicate repeated discussion of one issue but
 retain all supporting time ranges. Never promote a keyword match without AI
@@ -74,10 +95,37 @@ evaluation notes when testing the workflow.
 
 ## Output contract
 
-Store the report as Markdown, machine-readable candidates/findings as JSON, and
-exactly one representative image per final finding in an adjacent `assets/`
-directory. Every finding must also reference the original video and give the
-exact timestamp from which a reviewer can continue watching. Use relative
-links for local output so the result works in GitHub and Obsidian. Additional
-diagnostic frames may be generated temporarily, but include them in the final
-report only when the user explicitly requests dense evidence.
+The standard output directory contains:
+
+- `transcript-source.vtt` or `transcript-source.srt`: preserved timestamped
+  source transcript;
+- `transcript.md`: complete, readable transcript with every cue and timestamp;
+- `transcript-cues.json`: complete machine-readable transcript source;
+- `candidates.json`: optional deterministic leads;
+- `report.md`: detailed human-readable findings report;
+- `findings.json`: reusable structured findings;
+- `assets/`: exactly one representative image per final finding by default.
+
+Every finding references the original video, gives the exact timestamp from
+which a reviewer can continue watching, and includes the smallest relevant
+transcript evidence. Use relative links so the result works in GitHub and
+Obsidian. Additional diagnostic frames may be generated temporarily, but
+include them in the final report only when the user explicitly requests dense
+evidence.
+
+The first pass is a sparse "where to find what" overview. It does not create
+clips automatically. Mark findings whose meaning depends on timing or motion as
+`dynamic`, and offer per-finding extraction with or without audio. After a user
+selects findings, create only those clips and reformat the selected findings for
+the requested ticket, issue tracker, document, or other destination. See
+[docs/output-artifacts.md](docs/output-artifacts.md) for the artifact contract
+and clip example.
+
+## Recording responsibility
+
+Assume the user has handled any notice or permission required for recording
+participants. When a meeting or group session is recorded, the recommended
+practice is to tell participants that recording is taking place. This is a
+usage note, not a workflow blocker or a reason to stop analysis. Uploading any
+recording or derived artifact to an external service still requires explicit
+approval.

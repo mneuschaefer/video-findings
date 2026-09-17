@@ -14,9 +14,20 @@ Preserve direct quotes and visible UI labels in their original language. -->
 
 {{ summary }}
 
+## Findings overview
+
+{{ findings_overview }}
+
 ## Findings
 
 {{ findings }}
+
+## Full transcript
+
+[Open the complete timestamped transcript]({{ transcript_link }})
+
+The transcript and `transcript-cues.json` can be used to regenerate or reformat
+the findings without transcribing the recording again.
 
 ## Evaluation notes
 

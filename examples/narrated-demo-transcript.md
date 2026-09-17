@@ -1,0 +1,59 @@
+# Full timestamped transcript
+
+**Source:** transcript.vtt  
+**Generated:** 2026-09-17T11:24:43.992833+00:00  
+**Coverage:** Every timestamped cue from the source transcript
+
+This transcript is the reusable source for reports and other derived artifacts. It preserves the source language and does not add product context.
+
+**00:00:01.680–00:00:04.160**
+
+This is a short review of the checkout screen.
+
+**00:00:04.160–00:00:07.520**
+
+The order summary and the available delivery options are visible, and the
+
+**00:00:07.520–00:00:09.600**
+
+layout looks normal at first.
+
+**00:00:22.720–00:00:25.760**
+
+I select standard delivery and press continue.
+
+**00:00:25.760–00:00:26.880**
+
+Nothing happens.
+
+**00:00:26.880–00:00:30.480**
+
+There is no visible response, so I cannot tell whether the click
+
+**00:00:30.480–00:00:31.520**
+
+was registered.
+
+**00:00:46.720–00:00:48.480**
+
+I try continue again.
+
+**00:00:48.480–00:00:50.160**
+
+The button still does not work.
+
+**00:00:50.160–00:00:53.360**
+
+I would expect either the next step or a clear error message.
+
+**00:01:08.720–00:01:11.120**
+
+There is another issue in the order summary.
+
+**00:01:11.120–00:01:15.280**
+
+The discount message overlaps the total, which makes the final amount difficult
+
+**00:01:15.280–00:01:18.560**
+
+to read.

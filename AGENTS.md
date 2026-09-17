@@ -5,6 +5,11 @@ the boundary between deterministic media processing and model interpretation.
 
 - Keep media scripts small, local-first, and dependency-light.
 - Never describe a model inference as an observed fact.
+- Preserve every timestamped transcript cue in both readable Markdown and
+  machine-readable JSON so derived artifacts can be regenerated.
+- Capture described bugs without inventing missing product context. Do not
+  infer product names, requirements, severity, root cause, roles, or expected
+  behavior unless the recording supports them.
 - Keep `observation`, `reviewer_expectation`, `interpretation`, and
   `human_decision` separate in every finding.
 - Do not create external tickets or upload media without explicit approval.

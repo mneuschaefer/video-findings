@@ -48,6 +48,7 @@ class PipelineTests(unittest.TestCase):
             path.write_text(content, encoding="utf-8")
             cues = MODULE.parse_transcript(path)
         self.assertEqual(cues[0].text, "Nothing happens after Continue.")
+        self.assertEqual(cues[0].speaker, "Reviewer")
 
     def test_detects_spoken_usability_irritation(self):
         cues = [MODULE.Cue(2.0, 4.0, "This is not very intuitive for me.")]
@@ -90,10 +91,24 @@ class PipelineTests(unittest.TestCase):
             )()
             MODULE.prepare(args)
             payload = json.loads((output / "transcript-cues.json").read_text(encoding="utf-8"))
+            readable = (output / "transcript.md").read_text(encoding="utf-8")
+            preserved_exists = (output / "transcript-source.vtt").is_file()
         self.assertEqual(len(payload["cues"]), 3)
         self.assertEqual(payload["cues"][0]["text"], "Hier reagiert die Schaltfläche nicht.")
         self.assertEqual(payload["cues"][1]["text"], "ここでは画面が変わりません。")
         self.assertEqual(payload["cues"][2]["text"], "هنا لا تتغير الشاشة.")
+        self.assertIn("00:00:01.000–00:00:02.000", readable)
+        self.assertIn("Hier reagiert die Schaltfläche nicht.", readable)
+        self.assertIn("ここでは画面が変わりません。", readable)
+        self.assertIn("هنا لا تتغير الشاشة.", readable)
+        self.assertTrue(preserved_exists)
+
+    def test_timestamped_transcript_preserves_speaker_without_inventing_context(self):
+        cues = [MODULE.Cue(1.0, 2.5, "The button did not respond.", "Reviewer")]
+        transcript = MODULE.render_transcript("review.vtt", cues)
+        self.assertIn("**00:00:01.000–00:00:02.500** · **Reviewer**", transcript)
+        self.assertIn("The button did not respond.", transcript)
+        self.assertNotIn("Northstar", transcript)
 
     def test_single_frame_mode_writes_one_image_per_candidate(self):
         candidate = MODULE.Candidate(
@@ -148,6 +163,7 @@ class PipelineTests(unittest.TestCase):
             "analyze-recording",
             "check-environment",
             "extract-audio",
+            "extract-clip",
             "extract-frame",
             "extract-frames",
             "package-release",
