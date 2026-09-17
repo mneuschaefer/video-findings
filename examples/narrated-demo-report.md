@@ -1,6 +1,7 @@
 # Checkout review findings
 
-**Source:** [Narrated checkout review](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)  
+**Source:** [Narrated checkout review](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)
+
 **Status:** Draft — human review required
 
 ## Summary
