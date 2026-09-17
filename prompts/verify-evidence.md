@@ -18,8 +18,8 @@ only the strongest screenshot in the report.
   source interval rather than guessing. Mark the final finding as `dynamic` and
   offer an optional short clip; do not create or embed that clip during the
   first pass.
-- If the transcript claim conflicts with the frames, preserve both and mark the
-  finding `Needs review`.
+- If the transcript claim conflicts with the frames, preserve both and describe
+  that conflict naturally in the finding.
 - A screenshot is useful evidence only if a reviewer can understand what it
   supports from the caption and surrounding observation.
 - Reference the original video for every finding and give the exact start
@@ -40,6 +40,3 @@ finding prose. Add a caption with the exact image timestamp and a concrete
 description of what is visible. Do not present an unexplained screenshot as
 evidence. Keep direct quotes and visible UI text in their original language
 unless the user requests translation.
-
-Classify confidence as High, Medium, or Low based on combined evidence, not the
-reviewer's certainty of tone.

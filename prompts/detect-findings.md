@@ -34,8 +34,8 @@ For each possible finding:
 2. Capture a time window with context before and after the statement.
 3. Separate what the reviewer observed from what they expected.
 4. Include each described bug even when it cannot be confirmed visually in the
-   first pass. Label it as reported, unverified, or `Needs review` instead of
-   silently dropping it.
+   first pass. State the uncertainty naturally in the description instead of
+   silently dropping the finding or adding a generic status label.
 5. Stay close to the speaker's wording. Use neutral terms such as "the reviewed
    interface" when the product, feature, user role, or intended behavior is not
    established.

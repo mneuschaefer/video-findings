@@ -28,6 +28,9 @@ the boundary between deterministic media processing and model interpretation.
   `Video Findings.md` at the output root and every supporting artifact under
   `material/`. Each finding starts with its timestamp, contains detailed prose,
   embeds one image, and captions that image with timestamp and visible state.
+- Omit routine Status, Confidence, and Evidence labels from the dossier. Include
+  uncertainty or a need for another check only when it is specific and useful,
+  phrased naturally within the finding.
 - Accept local QuickTime/macOS screen recordings and downloaded Teams recording
   files. Never fetch a Teams recording from a meeting service automatically.
 - Run `scripts/check-environment` before processing input. On macOS, offer

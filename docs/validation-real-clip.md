@@ -41,7 +41,7 @@ must not be committed, packaged, or presented as project-owned sample media.
 - Visual inspection showed an existing note followed by creation of a blank
   note. This supports the interaction context but does not prove a defect.
 - The final classification is a possible onboarding/editor-discoverability
-  concern with medium confidence and human review required.
+  concern while preserving the specific uncertainty in the description.
 
 The downloaded video, clipped excerpt, transcript, frames, and generated report
 were removed after the run. Only this result summary belongs to the project and

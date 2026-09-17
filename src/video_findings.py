@@ -273,12 +273,8 @@ def render_report(
 ) -> str:
     blocks: list[str] = []
     for number, candidate in enumerate(candidates, 1):
-        quote = "\n> ".join(candidate.excerpts)
+        quote = " ".join(candidate.excerpts)
         images = "\n\n".join(f"![Evidence candidate]({path})" for path in candidate.frames)
-        windows = ", ".join(
-            f"{format_timestamp(window['start'])}–{format_timestamp(window['end'])}"
-            for window in candidate.windows
-        )
         watch_from = min(window["start"] for window in candidate.windows)
         heading_timestamp = (
             candidate.source_ranges[0].split("–", 1)[0]
@@ -298,36 +294,26 @@ def render_report(
             video_reference = "No source video supplied."
         image_caption = (
             f"*Image evidence · {format_timestamp(representative_time)} — "
-            "Representative frame for this unverified candidate; inspect the "
-            "source interval before publishing.*"
+            "Representative frame from the interval associated with the "
+            "reviewer's comment.*"
         )
         blocks.append(
             f"## {heading_timestamp} — Candidate finding {number}\n\n"
-            f"**Status:** Needs review  \n"
-            f"**Confidence:** {candidate.confidence}  \n"
-            f"**Candidate windows:** {windows}  \n"
-            f"**Source ranges:** {', '.join(candidate.source_ranges)}\n\n"
             f"{video_reference}\n\n"
-            "The transcript suggests a possible finding in this interval. The "
-            "reported behavior, visible state, and reviewer expectation still "
-            "need semantic and visual review before this becomes a final finding.\n\n"
-            f"**Transcript context:** {quote}\n\n"
+            f"The reviewer comments: “{quote}”\n\n"
             f"{images or 'No video supplied.'}\n\n"
-            f"{image_caption if images else ''}\n\n"
-            f"**Evidence boundary:** {candidate.reason}; interpretation pending.\n"
+            f"{image_caption if images else ''}\n"
         )
     return (
         "# Video Findings\n\n"
         f"**Source:** {source}  \n"
         f"**Generated:** {datetime.now(timezone.utc).isoformat()}  \n"
-        "**Status:** Preparation only — semantic AI review and human review required\n\n"
+        "*Automatically prepared transcript-led overview.*\n\n"
         "## Summary\n\n"
-        f"{len(candidates)} keyword-led candidate group(s). These are optional hints, not complete or verified findings.\n\n"
+        f"{len(candidates)} transcript-led candidate group(s) were found.\n\n"
         "## Findings\n\n"
         + ("\n\n".join(blocks) if blocks else "No transcript-led candidates found.")
-        + "\n\n## Evaluation notes\n\n"
-        "Transcript-led detection can miss purely visual issues. Inspect false positives, "
-        "misses, and frame usefulness before publishing findings.\n"
+        + "\n"
     )
 
 

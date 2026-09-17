@@ -12,8 +12,4 @@ visible, and uncertain information without inventing missing product context. --
 
 *Image evidence · {{ image_timestamp }} — {{ image_caption }}*
 
-**Evidence boundary:** {{ evidence_boundary }}
-
-**Status:** Needs review · **Confidence:** {{ confidence }} · **Evidence:** {{ evidence_need }}
-
-{{ optional_follow_up }}
+{{ relevant_uncertainty_or_next_step }}

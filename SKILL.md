@@ -49,7 +49,9 @@ enough.
    to review **every cue in the complete
    `material/transcript-cues.json` semantically**.
    Capture every described bug or actionable finding, including claims that
-   visual evidence cannot fully confirm, and mark their evidentiary status.
+   visual evidence cannot fully confirm. Mention uncertainty only when it is
+   meaningful—for example unclear audio, an ambiguous visual state, or a
+   reviewer saying that something still needs closer inspection.
    Stay close to the speaker's wording. Never invent a product name, feature,
    user role, requirement, severity, root cause, or expected behavior when the
    recording does not establish it. Keyword matches are optional hints only;
@@ -81,7 +83,9 @@ enough.
    the preparation dossier with one detailed root-level `Video Findings.md`
    using
    [templates/report.md](templates/report.md) and
-   [templates/finding.md](templates/finding.md). Write `material/findings.json`
+   [templates/finding.md](templates/finding.md). Read the user-editable
+   [templates/dossier-guidance.md](templates/dossier-guidance.md) for the
+   default summarization style. Write `material/findings.json`
    according to [templates/findings.schema.json](templates/findings.schema.json)
    and keep transcripts, machine-readable data, motion indexes, and images in
    `material/`. Link the full transcript from the dossier. Derived reports may
@@ -104,17 +108,18 @@ Keep three language concepts separate:
   original language unless the user requests translation.
 
 - **Observation:** directly supported by transcript or visible evidence.
-- **Reviewer expectation:** what the reviewer says should happen.
+- **Reviewer expectation or intent:** what the reviewer expects, proposes, or
+  plans to do next.
 - **Interpretation:** a tentative classification or explanation.
-- **Human decision:** remains open unless the user explicitly decides it.
 - **Unknown context:** product, feature, requirement, cause, or intent that the
   recording does not establish. Leave it unknown instead of completing it from
   plausibility.
 
-Use `Needs review` by default. Deduplicate repeated discussion of one issue but
-retain all supporting time ranges. Never promote a keyword match without AI
-context review. Keep non-findings and missed visual-only issues visible in the
-evaluation notes when testing the workflow.
+These distinctions guide the writing; do not expose them as repetitive Status,
+Confidence, or Evidence fields in the default dossier. Fold the useful content
+into the description. Deduplicate repeated discussion of one issue but retain
+all supporting time ranges. Never promote a keyword match without AI context
+review.
 
 ## Default dossier contract
 
@@ -145,6 +150,11 @@ optional in the dossier because the full transcript is linked; whenever quotes
 or visible UI text are included, preserve their original language unless the
 user asks for translation.
 
+Do not add routine Status, Confidence, or Evidence labels. If audio is unclear,
+the visual state is ambiguous, a claim cannot be verified, or the reviewer
+explicitly wants another check, add one natural sentence at the relevant point.
+Otherwise omit uncertainty boilerplate.
+
 Every finding references the original video, gives the exact timestamp from
 which a reviewer can continue watching, and includes the smallest relevant
 transcript evidence. Use relative links so the result works in GitHub and
@@ -159,6 +169,14 @@ selects findings, create only those clips and reformat the selected findings for
 the requested ticket, issue tracker, document, or other destination. See
 [docs/output-artifacts.md](docs/output-artifacts.md) for the artifact contract
 and clip example.
+
+## Customize the dossier
+
+Edit [templates/dossier-guidance.md](templates/dossier-guidance.md) to change
+how findings are summarized for a recurring personal or team workflow. Edit
+[templates/finding.md](templates/finding.md) for the per-finding Markdown layout
+and [templates/report.md](templates/report.md) for the surrounding dossier.
+Instructions in the current prompt still take precedence over these defaults.
 
 ## Recording responsibility
 

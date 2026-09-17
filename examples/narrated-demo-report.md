@@ -1,8 +1,6 @@
 # Checkout review findings
 
 **Source:** [Narrated checkout review](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)
-**Status:** Draft — human review required
-
 The complete transcript was reviewed semantically. It supports two distinct
 findings: a repeated complaint about `Continue` and a visible overlap in the
 order summary.
@@ -26,11 +24,6 @@ not stated.
 *Image evidence · 00:27.120 — Checkout remains on step 2 of 3 with standard
 delivery selected and Continue still visible.*
 
-**Evidence boundary:** Dynamic; verify the reported action and response in the
-source interval.
-
-**Status:** Needs review · **Confidence:** Medium
-
 Optional next step: extract finding 1 as a short clip with or without audio and
 convert it to the requested ticket format.
 
@@ -51,11 +44,6 @@ the root cause. Those details remain open for later ticket refinement.
 
 *Image evidence · 01:13.640 — The Discount applied: SAVE10 confirmation covers
 the Total label and final amount.*
-
-**Evidence boundary:** Static visual evidence supports the reported readability
-problem.
-
-**Status:** Needs review · **Confidence:** High
 
 ## Source material
 

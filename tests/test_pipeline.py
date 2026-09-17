@@ -191,6 +191,9 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("continue from 00:00:22.720", report)
         self.assertIn("## 00:00:22.720 — Candidate finding 1", report)
         self.assertIn("*Image evidence · 00:00:27.120 —", report)
+        self.assertNotIn("**Status:**", report)
+        self.assertNotIn("**Confidence:**", report)
+        self.assertNotIn("**Evidence", report)
 
     def test_default_output_root_contains_one_dossier_and_material_folder(self):
         content = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nNothing happens.\n"

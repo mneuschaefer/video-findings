@@ -30,6 +30,10 @@ requirements, roles, severity, causes, or intended behavior stay unknown.
 Every finding heading begins with its timestamp. One or two detailed paragraphs
 provide enough context for later tickets, followed by the representative image
 and a caption stating the image timestamp and visible state.
+Generic Status, Confidence, and Evidence labels are omitted from the dossier.
+Specific uncertainty or a reviewer-requested follow-up is included naturally
+only when it adds useful information. Customize these rules in
+[`../templates/dossier-guidance.md`](../templates/dossier-guidance.md).
 
 Each finding has an `evidence_need` value:
 

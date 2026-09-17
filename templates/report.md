@@ -15,8 +15,6 @@ Language policy:
 
 **Generated:** {{ generated_at }}
 
-**Status:** Draft — human review required
-
 {{ summary }}
 
 {{ findings }}

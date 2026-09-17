@@ -29,7 +29,7 @@ Select the preview to play the MP4 with sound.
 
 > **Discount message overlaps the order total**
 >
-> **Confidence:** High · **Watch from:** 01:08.720
+> **Watch from:** 01:08.720
 >
 > The `Discount applied: SAVE10` message visibly covers the total label and
 > amount, making the final amount difficult to read.
@@ -57,7 +57,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-Version `0.3.0` works with narrated recordings in which spoken content only
+Version `0.3.1` works with narrated recordings in which spoken content only
 makes sense together with the matching image or video segment. UI reviews are
 the included tested example, not a restriction on how the skill can be used.
 
@@ -329,6 +329,22 @@ The preserved transcript and `material/findings.json` are the stable boundaries.
 Transcription tools, agents, evidence modes, and future exporters can change
 without requiring another transcription pass.
 
+## Customize the dossier style
+
+The default summarization rules live in
+[`templates/dossier-guidance.md`](templates/dossier-guidance.md). Edit that
+file to define how findings should be written for a recurring personal or team
+workflow. The per-finding Markdown layout is in
+[`templates/finding.md`](templates/finding.md), and the surrounding document is
+in [`templates/report.md`](templates/report.md).
+
+The default style combines what is visible, how the reviewer comments on it,
+and what they expect or intend to do. It omits generic Status, Confidence, and
+Evidence fields. Specific uncertainty—such as unclear audio, an ambiguous
+screen state, or an explicit request to inspect something again—is written as
+a normal sentence only when relevant. Instructions in the current prompt can
+override the style, language, file name, and folder structure for one run.
+
 ## Build a release
 
 ```bash
@@ -360,7 +376,7 @@ accounts.
 
 ## Project status
 
-Version `0.3.0` is a portable, testable foundation for macOS. UI reviews are
+Version `0.3.1` is a portable, testable foundation for macOS. UI reviews are
 the included tested example. It automates deterministic preparation and local
 transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.
