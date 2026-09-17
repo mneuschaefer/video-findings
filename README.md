@@ -7,7 +7,11 @@
 > to be portable, but setup, local transcription, and the complete
 > workflow have not yet been adapted or verified for Linux or Windows.
 
-![Video Findings: narrated video, selected evidence, reviewable finding](assets/video-findings-hero-editorial-v2.png)
+[![Video Findings: narrated video, selected evidence, reviewable finding](assets/video-findings-hero-editorial-v2-1280.webp)](assets/video-findings-hero-editorial-v2.png)
+
+Image sizes: [800 px / 14 KB](assets/video-findings-hero-editorial-v2-800.webp) ·
+[1280 px / 25 KB](assets/video-findings-hero-editorial-v2-1280.webp) ·
+[original PNG / 1.1 MB](assets/video-findings-hero-editorial-v2.png)
 
 ## See it on a narrated review
 
