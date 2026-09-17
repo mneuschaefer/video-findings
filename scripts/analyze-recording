@@ -8,6 +8,7 @@ transcript=""
 output=""
 language=auto
 frame_mode=single
+motion_scan=on
 
 usage() {
   cat <<'EOF'
@@ -17,6 +18,7 @@ Options:
   --transcript PATH   Existing VTT/SRT, for example from a Teams recording
   --language CODE     Transcription language when no transcript exists (default: auto)
   --frame-mode MODE   single (default) or dense
+  --no-motion-scan    Skip the compact numeric whole-video motion index
   -h, --help          Show this help
 
 Examples:
@@ -32,6 +34,7 @@ while [[ "$#" -gt 0 ]]; do
     --output) output=${2:-}; shift 2 ;;
     --language) language=${2:-}; shift 2 ;;
     --frame-mode) frame_mode=${2:-}; shift 2 ;;
+    --no-motion-scan) motion_scan=off; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -67,7 +70,14 @@ python3 "$project_dir/src/video_findings.py" prepare \
   --output "$output" \
   --frame-mode "$frame_mode"
 
+if [[ "$motion_scan" == "on" ]]; then
+  "$script_dir/build-motion-index" --video "$video" --output "$output"
+fi
+
 printf '\nPreparation ready: %s/transcript-cues.json\n' "$output"
 printf 'Readable transcript: %s/transcript.md\n' "$output"
+if [[ "$motion_scan" == "on" ]]; then
+  printf 'Motion index: %s/motion-1s.tsv\n' "$output"
+fi
 printf 'Heuristic leads: %s/report.md\n' "$output"
 printf 'An agent must review all transcript cues in any source language, preserve described bugs without inventing missing product context, and write report.md plus findings.json. The first pass keeps one image per finding and offers selected dynamic clips on request.\n'

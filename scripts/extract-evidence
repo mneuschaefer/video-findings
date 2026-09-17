@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+video=""
+start=""
+end=""
+mode=""
+output=""
+crop=""
+include_audio=1
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/extract-evidence --video PATH --start TIME --end TIME \
+  --mode MODE --output DIRECTORY [--crop X:Y:W:H] [--no-audio]
+
+Modes:
+  static        Original-resolution representative frame and sparse sheet
+  interaction   Clip capped at 30 fps plus a 4 fps contact sheet
+  flicker       Source-timed clip capped at 60 fps plus a dense sheet
+  latency       Clip capped at 30 fps, motion timeline, and measurement inputs
+  audio-visual  Clip capped at 30 fps with audio by default
+  slow4x        Four-times slower review clip without inventing source frames
+
+The requested crop is applied before scaling. Audio is kept when available
+unless --no-audio is supplied.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --video) video=${2:-}; shift 2 ;;
+    --start) start=${2:-}; shift 2 ;;
+    --end) end=${2:-}; shift 2 ;;
+    --mode) mode=${2:-}; shift 2 ;;
+    --output) output=${2:-}; shift 2 ;;
+    --crop) crop=${2:-}; shift 2 ;;
+    --no-audio) include_audio=0; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$video" || -z "$start" || -z "$end" || -z "$mode" || -z "$output" ]]; then
+  usage >&2
+  exit 2
+fi
+if [[ ! -r "$video" ]]; then
+  echo "Video is not readable: $video" >&2
+  exit 1
+fi
+case "$mode" in
+  static|interaction|flicker|latency|audio-visual|slow4x) ;;
+  *) echo "Unsupported evidence mode: $mode" >&2; usage >&2; exit 2 ;;
+esac
+
+read -r start_seconds end_seconds duration source_fps has_audio < <(python3 - "$video" "$start" "$end" <<'PY'
+import json
+import subprocess
+import sys
+from fractions import Fraction
+
+def seconds(value: str) -> float:
+    parts = value.replace(",", ".").split(":")
+    if len(parts) == 1:
+        return float(parts[0])
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + float(parts[1])
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+    raise ValueError(f"Invalid timestamp: {value}")
+
+video, start_value, end_value = sys.argv[1:]
+probe = subprocess.run(
+    [
+        "ffprobe", "-v", "error", "-select_streams", "v:0",
+        "-show_entries", "stream=avg_frame_rate,r_frame_rate", "-of", "json", video,
+    ],
+    check=True,
+    capture_output=True,
+    text=True,
+)
+stream = json.loads(probe.stdout)["streams"][0]
+rate = stream.get("avg_frame_rate") or stream.get("r_frame_rate") or "0/1"
+if rate == "0/0":
+    rate = stream.get("r_frame_rate") or "0/1"
+fps = float(Fraction(rate))
+audio_probe = subprocess.run(
+    ["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=index", "-of", "json", video],
+    check=True,
+    capture_output=True,
+    text=True,
+)
+has_audio = bool(json.loads(audio_probe.stdout).get("streams"))
+start = seconds(start_value)
+end = seconds(end_value)
+if start < 0 or end <= start:
+    raise SystemExit("End timestamp must be greater than the non-negative start timestamp.")
+print(f"{start:.3f} {end:.3f} {end - start:.3f} {fps:.6f} {1 if has_audio else 0}")
+PY
+)
+
+crop_filter=""
+if [[ -n "$crop" ]]; then
+  IFS=: read -r crop_x crop_y crop_w crop_h <<< "$crop"
+  if [[ -z "${crop_x:-}" || -z "${crop_y:-}" || -z "${crop_w:-}" || -z "${crop_h:-}" ]]; then
+    echo "--crop must use X:Y:W:H" >&2
+    exit 2
+  fi
+  crop_filter="crop=${crop_w}:${crop_h}:${crop_x}:${crop_y},"
+fi
+
+mkdir -p "$output"
+"$script_dir/build-motion-index" --video "$video" --start "$start_seconds" \
+  --end "$end_seconds" --output "$output/temporal"
+
+if ffmpeg -hide_banner -encoders 2>/dev/null | grep -q 'h264_videotoolbox'; then
+  video_codec=(-c:v h264_videotoolbox -b:v 4M)
+else
+  video_codec=(-c:v libx264 -preset fast -crf 20)
+fi
+
+scale_filter="${crop_filter}scale=w='min(1920,iw)':h=-2,scale=w=-2:h='min(1080,ih)'"
+
+desired_fps=0
+sheet_fps=1
+case "$mode" in
+  static) desired_fps=0; sheet_fps=1 ;;
+  interaction|latency|audio-visual) desired_fps=30; sheet_fps=4 ;;
+  flicker) desired_fps=60; sheet_fps=12 ;;
+  slow4x) desired_fps=0; sheet_fps=4 ;;
+esac
+
+output_fps=$(python3 - "$source_fps" "$desired_fps" <<'PY'
+import sys
+source, desired = map(float, sys.argv[1:])
+print(f"{min(source, desired) if desired > 0 else source:.6f}")
+PY
+)
+sheet_fps=$(python3 - "$source_fps" "$sheet_fps" <<'PY'
+import sys
+source, desired = map(float, sys.argv[1:])
+print(f"{min(source, desired):.6f}")
+PY
+)
+
+if [[ "$mode" == "static" ]]; then
+  midpoint=$(python3 - "$start_seconds" "$end_seconds" <<'PY'
+import sys
+print(f"{(float(sys.argv[1]) + float(sys.argv[2])) / 2:.3f}")
+PY
+)
+  ffmpeg -hide_banner -loglevel error -y -ss "$midpoint" -i "$video" \
+    -vf "$crop_filter"'scale=w=min(1920\,iw):h=-2' -frames:v 1 -q:v 2 \
+    "$output/representative.jpg"
+else
+  fps_filter=""
+  if [[ "$desired_fps" != "0" ]] && python3 - "$source_fps" "$desired_fps" <<'PY'
+import sys
+raise SystemExit(0 if float(sys.argv[1]) > float(sys.argv[2]) else 1)
+PY
+  then
+    fps_filter="fps=$desired_fps,"
+  fi
+
+  audio_args=(-an)
+  if [[ "$include_audio" -eq 1 && "$has_audio" -eq 1 ]]; then
+    audio_args=(-map 0:a:0 -c:a aac -b:a 128k)
+  fi
+
+  if [[ "$mode" == "slow4x" ]]; then
+    slow_audio=(-an)
+    if [[ "$include_audio" -eq 1 && "$has_audio" -eq 1 ]]; then
+      slow_audio=(-map 0:a:0 -filter:a atempo=0.5,atempo=0.5 -c:a aac -b:a 128k)
+    fi
+    ffmpeg -hide_banner -loglevel error -y -ss "$start_seconds" -i "$video" -t "$duration" \
+      -map 0:v:0 -vf "$scale_filter,setpts=4*(PTS-STARTPTS)" \
+      "${video_codec[@]}" "${slow_audio[@]}" -movflags +faststart "$output/clip-slow4x.mp4"
+  else
+    ffmpeg -hide_banner -loglevel error -y -ss "$start_seconds" -i "$video" -t "$duration" \
+      -map 0:v:0 -vf "$fps_filter$scale_filter" \
+      "${video_codec[@]}" "${audio_args[@]}" -movflags +faststart "$output/clip-$mode.mp4"
+  fi
+fi
+
+ffmpeg -hide_banner -loglevel error -y -ss "$start_seconds" -i "$video" -t "$duration" -an \
+  -vf "${crop_filter}fps=$sheet_fps,scale=480:-2,tile=5x5:padding=4:margin=4" \
+  "$output/sheet-%03d.jpg"
+
+python3 - "$output" "$video" "$mode" "$start_seconds" "$end_seconds" \
+  "$source_fps" "$output_fps" "$include_audio" "$has_audio" "$crop" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+output, video, mode, start, end, source_fps, output_fps, requested_audio, has_audio, crop = sys.argv[1:]
+root = Path(output)
+files = sorted(str(path.relative_to(root)) for path in root.rglob("*") if path.is_file())
+payload = {
+    "schema_version": 1,
+    "source_video": video,
+    "mode": mode,
+    "start": float(start),
+    "end": float(end),
+    "source_fps": float(source_fps),
+    "output_fps_cap": float(output_fps),
+    "audio_included": requested_audio == "1" and has_audio == "1" and mode != "static",
+    "crop_xywh": crop or None,
+    "source_frames_upsampled": False,
+    "files": files,
+}
+(root / "evidence.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+PY
+
+printf 'Wrote evidence package: %s\n' "$output"

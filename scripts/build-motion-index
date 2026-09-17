@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+video=""
+output=""
+start="0"
+end=""
+sample_fps=12
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/build-motion-index --video PATH --output DIRECTORY [OPTIONS]
+
+Options:
+  --start TIME       Optional interval start in seconds or HH:MM:SS.mmm
+  --end TIME         Optional interval end in seconds or HH:MM:SS.mmm
+  --sample-fps N     Numeric scan rate (default: 12)
+
+Writes motion.tsv, motion-1s.tsv, and motion-summary.json. No images or clips
+are created.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --video) video=${2:-}; shift 2 ;;
+    --output) output=${2:-}; shift 2 ;;
+    --start) start=${2:-}; shift 2 ;;
+    --end) end=${2:-}; shift 2 ;;
+    --sample-fps) sample_fps=${2:-}; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$video" || -z "$output" ]]; then
+  usage >&2
+  exit 2
+fi
+if [[ ! -r "$video" ]]; then
+  echo "Video is not readable: $video" >&2
+  exit 1
+fi
+if ! [[ "$sample_fps" =~ ^[0-9]+([.][0-9]+)?$ ]] || ! python3 - "$sample_fps" <<'PY'
+import sys
+raise SystemExit(0 if float(sys.argv[1]) > 0 else 1)
+PY
+then
+  echo "--sample-fps must be greater than zero." >&2
+  exit 2
+fi
+
+read -r start_seconds duration < <(python3 - "$video" "$start" "$end" <<'PY'
+import json
+import subprocess
+import sys
+
+def seconds(value: str) -> float:
+    parts = value.replace(",", ".").split(":")
+    if len(parts) == 1:
+        return float(parts[0])
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + float(parts[1])
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+    raise ValueError(f"Invalid timestamp: {value}")
+
+video, start_value, end_value = sys.argv[1:]
+probe = subprocess.run(
+    ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", video],
+    check=True,
+    capture_output=True,
+    text=True,
+)
+video_duration = float(json.loads(probe.stdout)["format"]["duration"])
+start = seconds(start_value)
+end = seconds(end_value) if end_value else video_duration
+end = min(end, video_duration)
+if start < 0 or end <= start:
+    raise SystemExit("End timestamp must be greater than the non-negative start timestamp.")
+print(f"{start:.3f} {end - start:.3f}")
+PY
+)
+
+mkdir -p "$output"
+metadata=$(mktemp "${TMPDIR:-/tmp}/video-findings-motion.XXXXXX")
+trap 'rm -f "$metadata"' EXIT
+
+ffmpeg -hide_banner -loglevel info -ss "$start_seconds" -i "$video" -t "$duration" -an \
+  -vf "fps=$sample_fps,scale=640:-2:flags=fast_bilinear,select=gte\\(scene\\,0\\),metadata=mode=print" \
+  -f null - 2> "$metadata"
+
+awk -v offset="$start_seconds" '
+  BEGIN { print "time_seconds\tscene_score" }
+  /frame:/ {
+    for (i = 1; i <= NF; i++) {
+      if ($i ~ /^pts_time:/) {
+        split($i, value, ":")
+        timestamp = value[2] + offset
+      }
+    }
+  }
+  /lavfi.scene_score=/ {
+    split($0, value, "=")
+    printf "%.6f\t%s\n", timestamp, value[2]
+  }
+' "$metadata" > "$output/motion.tsv"
+
+awk -F '\t' '
+  NR > 1 {
+    second = int($1)
+    score = $2 + 0
+    total[second] += score
+    count[second] += 1
+    if (score > maximum[second]) maximum[second] = score
+    if (!seen || second < first) first = second
+    if (!seen || second > last) last = second
+    seen = 1
+  }
+  END {
+    print "second\tmean_scene_score\tmax_scene_score"
+    if (seen) {
+      for (second = first; second <= last; second++) {
+        if (count[second]) {
+          printf "%d\t%.6f\t%.6f\n", second, total[second] / count[second], maximum[second]
+        }
+      }
+    }
+  }
+' "$output/motion.tsv" > "$output/motion-1s.tsv"
+
+python3 - "$output/motion-1s.tsv" "$output/motion-summary.json" "$video" \
+  "$start_seconds" "$duration" "$sample_fps" <<'PY'
+import csv
+import json
+import sys
+from pathlib import Path
+
+timeline, destination, video, start, duration, sample_fps = sys.argv[1:]
+rows = []
+with Path(timeline).open(encoding="utf-8") as handle:
+    for row in csv.DictReader(handle, delimiter="\t"):
+        rows.append({
+            "second": int(row["second"]),
+            "mean_scene_score": float(row["mean_scene_score"]),
+            "max_scene_score": float(row["max_scene_score"]),
+        })
+peaks = sorted(rows, key=lambda item: item["max_scene_score"], reverse=True)[:20]
+payload = {
+    "schema_version": 1,
+    "source_video": video,
+    "start": float(start),
+    "duration": float(duration),
+    "sample_fps": float(sample_fps),
+    "peak_seconds": peaks,
+}
+Path(destination).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+PY
+
+printf 'Wrote %s, %s, and %s\n' \
+  "$output/motion.tsv" "$output/motion-1s.tsv" "$output/motion-summary.json"

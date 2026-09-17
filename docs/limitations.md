@@ -4,6 +4,8 @@
 - A representative screenshot can miss short-lived state changes. The first
   pass marks these findings as dynamic and links the relevant interval. Extract
   a short clip with or without audio only when the user selects that finding.
+- Numeric motion peaks can help locate transitions, but they cannot identify a
+  bug, interaction, or cause without transcript and visual review.
 - Reviewer expectations may be incorrect or outside the intended requirements.
 - Keyword candidates are intentionally simple, strongest for direct English
   wording, and are not final findings. Language-independent detection requires

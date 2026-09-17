@@ -16,7 +16,7 @@ test:
 
 demo: check
 	./scripts/generate-demo-video examples/generated/demo-review.mp4
-	$(PYTHON) src/video_findings.py prepare \
+	./scripts/analyze-recording \
 		--video examples/generated/demo-review.mp4 \
 		--transcript examples/sample-transcript.vtt \
 		--output output/demo

@@ -30,6 +30,10 @@
           "status": {"type": "string"},
           "confidence": {"enum": ["High", "Medium", "Low"]},
           "evidence_need": {"enum": ["static", "dynamic"]},
+          "dynamic_mode": {
+            "type": ["string", "null"],
+            "enum": [null, "interaction", "flicker", "latency", "audio-visual", "slow4x"]
+          },
           "time_ranges": {
             "type": "array",
             "items": {

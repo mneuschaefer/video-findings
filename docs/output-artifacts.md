@@ -9,6 +9,8 @@ to regenerate later reports without retranscribing the recording.
 | `transcript.md` | Complete readable transcript with timestamps and speakers when available |
 | `transcript-cues.json` | Complete machine-readable transcript source |
 | `candidates.json` | Optional deterministic leads for AI review |
+| `motion-1s.tsv` | Compact numeric whole-video motion index for routing |
+| `motion.tsv` | Detailed motion values for selected inspection windows |
 | `report.md` | Detailed human-readable report, close to the spoken claims |
 | `findings.json` | Structured findings for regeneration and conversion |
 | `assets/` | One representative evidence image per final finding by default |
@@ -22,6 +24,11 @@ Each finding has an `evidence_need` value:
 - `static`: one representative image normally provides enough orientation;
 - `dynamic`: the claim depends on motion, timing, audio, or an intermediate
   state. The first pass still includes only one image and the source interval.
+
+Dynamic findings may additionally use `interaction`, `flicker`, `latency`,
+`audio-visual`, or `slow4x` as an internal extraction mode. Read
+[`../references/temporal-evidence.md`](../references/temporal-evidence.md) before
+creating an evidence package.
 
 For a selected dynamic finding, use:
 

@@ -7,6 +7,7 @@ Preserve direct quotes and visible UI labels in their original language. -->
 - **Status:** Needs review
 - **Confidence:** {{ confidence }}
 - **Evidence need:** {{ evidence_need }}
+- **Dynamic mode:** {{ dynamic_mode }}
 - **Time range:** {{ time_range }}
 - **Watch from:** [{{ watch_from }} in the original video]({{ original_video_link }})
 

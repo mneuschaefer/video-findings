@@ -57,7 +57,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## What it does
 
-Version `0.1.5` works with narrated recordings in which spoken content only
+Version `0.2.0` works with narrated recordings in which spoken content only
 makes sense together with the matching image or video segment. UI reviews are
 the included tested example, not a restriction on how the skill can be used.
 
@@ -216,6 +216,9 @@ output/demo/
 ├── assets/
 │   └── finding-*.jpg
 ├── candidates.json
+├── motion-1s.tsv
+├── motion.tsv
+├── motion-summary.json
 ├── transcript-source.vtt
 ├── transcript-cues.json
 ├── transcript.md
@@ -246,12 +249,14 @@ finding. The keyword script does not make that decision. Each final finding
 normally contains one representative screenshot, a link to the original video,
 and the exact timestamp from which to continue watching.
 
-The first pass stays sparse and marks timing-dependent findings as dynamic. It
-does not create clips automatically. A user can select a finding afterwards,
-for example: "Extract finding 3 as a short clip with audio and convert it to my
-ticket format." Add `--no-audio` when a silent attachment is preferred. Dense
-frames remain available for diagnosis, but the report still uses one
-representative image unless the user asks for more.
+The first pass stays sparse. A compact numeric movement index helps route
+timing-dependent findings but creates no extra images or clips. Such findings
+are marked as dynamic. A user can select one afterwards, for example: "Extract
+finding 3 as a short clip with audio and convert it to my ticket format." The
+selected interval can use an interaction, flicker, latency, audio-visual, or
+slow-motion evidence mode. Add `--no-audio` when a silent attachment is
+preferred. The report still uses one representative image unless the user asks
+for more.
 
 ## Analyze a downloaded Teams recording
 
@@ -295,8 +300,9 @@ video-findings/
 └── tests/                    # Parser, Teams VTT, detection, packaging checks
 ```
 
-`candidates.json` is the stable boundary. Transcription tools, agents, and
-future exporters can change independently of the media scripts.
+The preserved transcript and `findings.json` are the stable boundaries.
+Transcription tools, agents, evidence modes, and future exporters can change
+without requiring another transcription pass.
 
 ## Build a release
 
@@ -329,7 +335,7 @@ accounts.
 
 ## Project status
 
-Version `0.1.5` is a portable, testable V1 foundation for macOS. UI reviews are
+Version `0.2.0` is a portable, testable foundation for macOS. UI reviews are
 the included tested example. It automates deterministic preparation and local
 transcription, while an agent or person still performs the visual review so
 uncertain findings remain marked as such.

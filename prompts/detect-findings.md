@@ -4,6 +4,9 @@ Read the complete timestamped transcript, preferably `transcript-cues.json`, as
 a search index, not as proof that a defect exists. Detect findings semantically
 in any language. Never use the bundled keyword candidates as a coverage
 boundary: they are optional efficiency hints and may miss non-English wording.
+When `motion-1s.tsv` is available, use it as a compact routing signal for
+transcript-aligned state changes. Motion peaks are not findings and do not prove
+that a defect occurred.
 
 ## Output language
 
@@ -33,7 +36,9 @@ For each possible finding:
 8. Treat statements such as “I expected” as expectations, not product truth.
 9. Classify the evidence need as `static` or `dynamic`. Use `dynamic` when the
    claim depends on timing, motion, audio, a transition, flicker, latency,
-   dragging, or a short-lived intermediate state.
+   dragging, or a short-lived intermediate state. When dynamic, also choose the
+   most likely internal mode: `interaction`, `flicker`, `latency`,
+   `audio-visual`, or `slow4x`.
 10. Merge repeated discussion of the same behavior while retaining every time
    range.
 11. Exclude harmless commentary and general preferences unless they imply an

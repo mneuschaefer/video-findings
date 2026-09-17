@@ -10,6 +10,7 @@
       "status": "Needs review",
       "confidence": "Medium",
       "evidence_need": "dynamic",
+      "dynamic_mode": "interaction",
       "time_ranges": [
         {"start": 22.72, "end": 31.52},
         {"start": 46.72, "end": 53.36}
@@ -37,6 +38,7 @@
       "status": "Needs review",
       "confidence": "High",
       "evidence_need": "static",
+      "dynamic_mode": null,
       "time_ranges": [
         {"start": 68.72, "end": 78.56}
       ],

@@ -37,7 +37,9 @@ enough.
 3. Run `scripts/analyze-recording --video ... --transcript ... --output ...` or
    `python3 src/video_findings.py prepare ...` to create deterministic
    `transcript.md`, `transcript-cues.json`, an archived source VTT/SRT, optional
-   keyword leads, one initial screenshot per lead, and a preparation report.
+   keyword leads, a compact numeric `motion-1s.tsv`, one initial screenshot per
+   lead, and a preparation report. The motion index creates no screenshots or
+   clips and is a routing aid, not proof of a defect.
    These transcript artifacts are the reusable source from which reports can be
    regenerated later. The default `single` frame mode keeps the review compact;
    use `--frame-mode dense` only when the user explicitly asks for many samples
@@ -60,12 +62,16 @@ enough.
    report. Read [prompts/verify-evidence.md](prompts/verify-evidence.md). Use
    `scripts/extract-frames` for dense diagnosis only, not for the normal report.
    If visual evidence does not prove a claim, say so; never invent UI state
-   between samples. Mark timing-dependent findings as `dynamic` and offer a
+   between samples. Mark timing-dependent findings as `dynamic`, record the
+   most appropriate internal mode, and offer a
    short follow-up clip instead of creating it automatically. When the user
-   selects a finding, run `scripts/extract-clip --video ... --start ... --end
-   ... --output ...`; preserve audio by default or add `--no-audio` when
-   requested. Natural requests such as "Give me the clip for finding 3 and put
-   it into my ticket format" are sufficient selection.
+   selects a finding, read
+   [references/temporal-evidence.md](references/temporal-evidence.md) and run
+   `scripts/extract-evidence` with the appropriate mode. Preserve audio by
+   default or add `--no-audio` when requested. Natural requests such as "Give
+   me the clip for finding 3 and put it into my ticket format" are sufficient
+   selection. Use `scripts/measure-interval` after inspecting source-timed
+   evidence when latency or stabilization must be quantified.
 6. Write a detailed final `report.md` using
    [templates/report.md](templates/report.md) and
    [templates/finding.md](templates/finding.md). Also write `findings.json`
@@ -101,6 +107,8 @@ The standard output directory contains:
   source transcript;
 - `transcript.md`: complete, readable transcript with every cue and timestamp;
 - `transcript-cues.json`: complete machine-readable transcript source;
+- `motion-1s.tsv`: compact whole-video routing index without extra images;
+- `motion.tsv` and `motion-summary.json`: detailed numeric motion data;
 - `candidates.json`: optional deterministic leads;
 - `report.md`: detailed human-readable findings report;
 - `findings.json`: reusable structured findings;

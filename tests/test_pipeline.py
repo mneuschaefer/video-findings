@@ -161,24 +161,56 @@ class PipelineTests(unittest.TestCase):
         scripts = Path(__file__).parents[1] / "scripts"
         for name in (
             "analyze-recording",
+            "build-motion-index",
             "check-environment",
             "extract-audio",
             "extract-clip",
+            "extract-evidence",
             "extract-frame",
             "extract-frames",
             "package-release",
+            "measure-interval",
             "setup-macos",
             "transcribe-local",
         ):
             self.assertTrue(os.access(scripts / name, os.X_OK), name)
+
+    def test_measure_interval_writes_latency_and_stabilization(self):
+        root = Path(__file__).parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "measurement.json"
+            subprocess.run(
+                [
+                    str(root / "scripts" / "measure-interval"),
+                    "--action", "00:00:12.400",
+                    "--response", "13.050",
+                    "--stable", "13.600",
+                    "--output", str(output),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(payload["latency_seconds"], 0.65)
+        self.assertEqual(payload["stabilization_seconds"], 0.55)
 
     def test_shell_scripts_have_valid_syntax(self):
         root = Path(__file__).parents[1]
         scripts = list((root / "scripts").glob("*"))
         scripts += list((root / "scripts" / "lib").glob("*.sh"))
         for script in scripts:
-            if script.is_file():
+            if script.is_file() and "bash" in script.read_text(
+                encoding="utf-8"
+            ).splitlines()[0]:
                 subprocess.run(["bash", "-n", script], check=True)
+
+    def test_python_scripts_have_valid_syntax(self):
+        root = Path(__file__).parents[1]
+        subprocess.run(
+            [sys.executable, "-m", "py_compile", root / "scripts" / "measure-interval"],
+            check=True,
+        )
 
     def test_setup_plans_one_recommended_model_and_allows_override(self):
         root = Path(__file__).parents[1]

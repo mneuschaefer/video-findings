@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Calculate latency and stabilization measurements from reviewed timestamps."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+
+def seconds(value: str) -> float:
+    parts = value.replace(",", ".").split(":")
+    if len(parts) == 1:
+        return float(parts[0])
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + float(parts[1])
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+    raise argparse.ArgumentTypeError(f"Invalid timestamp: {value}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--action", required=True, type=seconds)
+    parser.add_argument("--response", required=True, type=seconds)
+    parser.add_argument("--stable", type=seconds)
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    if args.action < 0 or args.response < args.action:
+        parser.error("response must be at or after the non-negative action timestamp")
+    if args.stable is not None and args.stable < args.response:
+        parser.error("stable must be at or after the response timestamp")
+    payload = {
+        "schema_version": 1,
+        "action_time": args.action,
+        "response_time": args.response,
+        "latency_seconds": round(args.response - args.action, 3),
+        "stable_time": args.stable,
+        "stabilization_seconds": (
+            round(args.stable - args.response, 3) if args.stable is not None else None
+        ),
+        "measurement_basis": "timestamps selected after reviewing source-timed evidence",
+    }
+    destination = Path(args.output)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {destination}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

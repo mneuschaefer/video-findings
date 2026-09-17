@@ -4,6 +4,8 @@ This repository turns narrated videos into reviewable visual findings. Preserve
 the boundary between deterministic media processing and model interpretation.
 
 - Keep media scripts small, local-first, and dependency-light.
+- Build a compact numeric motion index during the first pass without generating
+  extra images or clips. Treat it as routing data, never as proof.
 - Never describe a model inference as an observed fact.
 - Preserve every timestamped transcript cue in both readable Markdown and
   machine-readable JSON so derived artifacts can be regenerated.
