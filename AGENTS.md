@@ -21,6 +21,9 @@ the boundary between deterministic media processing and model interpretation.
 - Run `scripts/check-environment` before processing input. On macOS, offer
   the read-only `scripts/setup-macos` plan when dependencies are missing. Reuse
   a ready MacParakeet model before offering the Whisper fallback. State the
-  approximate download and warn that Homebrew dependencies may require several
-  gigabytes; use `scripts/setup-macos --install --yes` only after approval.
+  chosen single-model download and its reported size; use
+  `scripts/setup-macos --install --yes` only after approval. Ensure one local
+  transcription model is ready, prefer the currently tested Parakeet TDT v3 on
+  compatible Macs, and never download a second model unnecessarily. Preserve
+  an explicit user choice of another supported backend or model.
 - Run `make test` and `make demo` after behavior changes.

@@ -157,7 +157,7 @@ if [[ -n "$transcript" ]]; then
 fi
 
 if [[ "$missing" -ne 0 ]]; then
-  printf '\nEnvironment is not ready. On macOS run: ./scripts/setup-macos --install\n' >&2
+  printf '\nEnvironment is not ready. On macOS run ./scripts/setup-macos to inspect the conservative setup plan.\n' >&2
   exit 1
 fi
 

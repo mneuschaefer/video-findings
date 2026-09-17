@@ -41,7 +41,7 @@ Replace the placeholder with this repository's URL, then paste the complete
 prompt into your coding agent:
 
 ```text
-Clone <REPOSITORY_URL> into a local folder named video-findings and install it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos to inspect the environment and reuse an installed MacParakeet model when available. Explain the complete download plan and approximate sizes before making changes; only after my approval run ./scripts/setup-macos --install --yes. Finally run make test and make demo, keep all recordings local, and report the selected transcription backend plus any missing dependency or permission.
+Clone <REPOSITORY_URL> into a local folder named video-findings and prepare it on this Mac. Read SKILL.md first. Run ./scripts/setup-macos only as a read-only inspection. Reuse an installed transcription model and never download more than one. Recommend Parakeet TDT v3 on a compatible Mac, but let me choose another supported backend or model before installation. Explain the exact model choice, its reported download size, and each missing core dependency; only after my approval run ./scripts/setup-macos --install --yes with the same options. Finally run make test and make demo, keep all recordings local, and report what was reused or installed.
 ```
 
 Already downloaded the folder? Ask the agent:
@@ -52,7 +52,7 @@ Open this video-findings folder, read SKILL.md, prepare it on this Mac, run the 
 
 ## The use case
 
-The included `0.1.3` analysis profile starts with narrated UI reviews. The
+The included `0.1.4` analysis profile starts with narrated UI reviews. The
 underlying method is broader: use transcript cues to locate moments whose
 meaning or evidence depends on the matching visual state.
 
@@ -125,33 +125,76 @@ Run the read-only check first:
 ./scripts/setup-macos
 ```
 
-After reviewing the changes, install missing dependencies:
+After reviewing the plan, install its missing core dependencies and single
+selected model:
 
 ```bash
 ./scripts/setup-macos --install
 ```
 
 The command asks for confirmation. Agents may add `--yes` only after the user
-has reviewed and explicitly approved the displayed plan.
+has reviewed and explicitly approved the displayed plan. Setup leaves the Mac
+with one working local transcription model, but never downloads a second model
+when a compatible one is already ready.
+
+The setup decision is intentionally conservative:
+
+| What is already available | Default action |
+|---|---|
+| MacParakeet with a local Parakeet model | Reuse it; download nothing |
+| Complete local Whisper setup | Reuse it; download nothing |
+| MacParakeet installed, but no model | Download recommended Parakeet TDT v3, reported by MacParakeet as ~465 MB |
+| MacParakeet unavailable and no model | Install the Whisper fallback and download `base`, 142 MiB |
+
+To choose another model, change the read-only plan before approving it:
+
+```bash
+./scripts/setup-macos --backend parakeet --parakeet-model parakeet-v3
+./scripts/setup-macos --backend whisper --model small
+```
 
 | Dependency | Needed for | Setup behavior |
 |---|---|---|
 | Homebrew | Managed macOS installation | Must already exist; never installed silently |
 | Python 3.10+ | Transcript parsing and report generation | Installed only if missing or too old |
 | FFmpeg + FFprobe | MOV/MP4 probing, audio, frames | Installed only if missing |
-| MacParakeet + downloaded Parakeet model | Preferred local transcription when already installed | Detected and reused; nothing is downloaded by Video Findings |
-| `whisper.cpp` | Fallback local transcription | Offered only when no ready Parakeet or Whisper backend exists |
-| multilingual Whisper model | Fallback model | Defaults to `base` (about 142 MB) in `models/` |
+| MacParakeet + Parakeet model | Preferred local transcription | Reused when ready; otherwise the one selected Parakeet model is downloaded |
+| `whisper.cpp` | Fallback when MacParakeet is unavailable | Installed only if no ready backend exists or explicitly selected |
+| multilingual Whisper model | One fallback model | Defaults to `base` (142 MiB); another model can be selected before installation |
 
 The deterministic Python core uses only the standard library. The setup script
 does not modify shell startup files, request administrator privileges, or
 upload media. Full details are in [`docs/setup-macos.md`](docs/setup-macos.md).
-Before changing the machine, it reports the chosen transcription backend,
-missing Homebrew formulae, the approximate model download, and the possibility
-that Homebrew plus transitive dependencies may consume hundreds of megabytes to
-several gigabytes. The installer also runs a transcription smoke test. If the
-Whisper Metal backend fails, the wrapper retries locally with
+Before changing the machine, it reports the chosen transcription backend and
+every missing Homebrew formula.
+
+**The additional speech-model download is 0 MiB when a compatible model is
+already installed.** Otherwise setup downloads exactly one model. On a Mac with
+MacParakeet, the tested recommendation is Parakeet TDT v3 (~465 MB as reported
+by MacParakeet). Without MacParakeet, the minimum functional fallback is
+Whisper `base` at 142 MiB. Optional Whisper choices range from `tiny` at 75 MiB
+to a full `large` model at 2.9 GiB (`small` 466 MiB; `medium` 1.5 GiB). Start
+with Parakeet v3, or Whisper `base` when Parakeet is unavailable; choose a
+larger or newer compatible model before installation only when the device or
+expected audio quality justifies it. Homebrew may separately fetch missing
+Python, FFmpeg, or `whisper.cpp` bottles and system-specific dependencies; the
+plan lists these core formulae separately from the single model download.
+The alternative sizes follow the official
+[whisper.cpp model table](https://github.com/ggml-org/whisper.cpp#memory-usage).
+
+The currently tested and preferred backend is Parakeet TDT v3. This is a
+tested baseline, not a permanent lock: a newer
+MacParakeet-compatible model listed by `macparakeet-cli models list` can be
+selected before installation with `--parakeet-model`; an already installed
+variant can also be selected through `VIDEO_FINDINGS_PARAKEET_MODEL`. A
+compatible existing Whisper model can be supplied with
+`VIDEO_FINDINGS_MODEL_PATH`. The workflow never changes to a newer model
+automatically. The installer runs a transcription smoke test when a backend is
+ready. If the Whisper Metal backend fails, the wrapper retries locally with
 `whisper.cpp --no-gpu` and remembers that stable project-local fallback.
+See FluidAudio's current
+[ASR model guide](https://github.com/FluidInference/FluidAudio/blob/main/Documentation/Models.md)
+for the upstream model landscape.
 
 ## Two-minute smoke test
 
@@ -268,7 +311,7 @@ Obsidian plugin, a cloud backend, or user accounts.
 
 ## Project status
 
-Version `0.1.3` is a portable macOS-oriented package and a testable V1
+Version `0.1.4` is a portable macOS-oriented package and a testable V1
 foundation with an initial UI-review profile. Deterministic preparation and
 local transcription are automated; nuanced visual verification remains an
 explicit agent or human task so uncertainty stays visible.

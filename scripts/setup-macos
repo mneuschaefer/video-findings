@@ -6,22 +6,32 @@ project_dir=$(cd "$script_dir/.." && pwd)
 source "$script_dir/lib/transcription-backends.sh"
 install=0
 assume_yes=0
+backend_choice=auto
 model_name=base
+parakeet_download_id=${VIDEO_FINDINGS_PARAKEET_MODEL:-parakeet-v3}
+parakeet_model_explicit=0
+if [[ -n "${VIDEO_FINDINGS_PARAKEET_MODEL:-}" ]]; then
+  parakeet_model_explicit=1
+fi
 
 usage() {
   cat <<'EOF'
-Usage: scripts/setup-macos [--install] [--yes] [--model NAME]
+Usage: scripts/setup-macos [--install] [--yes] [--backend NAME] [--model NAME] [--parakeet-model ID]
 
 Without --install this command checks the environment and prints the plan.
 An existing MacParakeet installation with a downloaded Parakeet model is the
 preferred transcription backend and is reused without another model download.
 
-With --install, missing core packages are installed through Homebrew. If no
-local transcription backend is ready, whisper.cpp and a multilingual model are
-offered as the fallback. Interactive confirmation is required unless --yes is
-used after the plan has already been approved.
+With --install, missing core packages and at most one speech model are
+installed. Auto mode reuses any ready local backend; otherwise it downloads
+Parakeet TDT v3 when MacParakeet is present, or the Whisper base fallback when
+it is not. Choose another supported backend/model in the read-only plan before
+approving installation. Interactive confirmation is required unless --yes is
+used after the displayed plan has already been approved.
 
-Default model: base. Examples: tiny, base, small, large-v3-turbo-q5_0.
+Backends: auto (default), parakeet, whisper.
+Whisper default: base. Examples: tiny, base, small, large-v3-turbo-q5_0.
+Parakeet default: parakeet-v3. Use an ID reported by `models list`.
 EOF
 }
 
@@ -29,11 +39,18 @@ while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --install) install=1; shift ;;
     --yes) assume_yes=1; shift ;;
+    --backend) backend_choice=${2:-}; shift 2 ;;
     --model) model_name=${2:-}; shift 2 ;;
+    --parakeet-model) parakeet_download_id=${2:-}; parakeet_model_explicit=1; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
+
+case "$backend_choice" in
+  auto|parakeet|whisper) ;;
+  *) echo "--backend must be auto, parakeet, or whisper." >&2; exit 2 ;;
+esac
 
 if [[ "$(uname -s)" != Darwin ]]; then
   echo "This installer targets macOS. Use scripts/check-environment and install Python 3.10+, FFmpeg, and whisper.cpp with your system package manager." >&2
@@ -51,7 +68,11 @@ fi
 parakeet_cli=$(vf_find_macparakeet_cli || true)
 parakeet_model=""
 if [[ -n "$parakeet_cli" ]]; then
-  parakeet_model=$(vf_macparakeet_model "$parakeet_cli" || true)
+  if [[ "$parakeet_model_explicit" -eq 1 ]]; then
+    parakeet_model=$(VIDEO_FINDINGS_PARAKEET_MODEL="$parakeet_download_id" vf_macparakeet_model "$parakeet_cli" || true)
+  else
+    parakeet_model=$(vf_macparakeet_model "$parakeet_cli" || true)
+  fi
 fi
 whisper_cli=$(vf_find_whisper_cli || true)
 model_path="$project_dir/models/ggml-${model_name}.bin"
@@ -60,24 +81,66 @@ if [[ -n "${VIDEO_FINDINGS_MODEL_PATH:-}" ]]; then
 fi
 
 need_whisper=0
-if [[ -n "$parakeet_cli" && -n "$parakeet_model" ]]; then
-  transcription_plan="Reuse MacParakeet with its installed Parakeet $parakeet_model model; no speech-model download."
-elif [[ -n "$whisper_cli" && -r "$model_path" ]]; then
-  transcription_plan="Reuse the existing whisper.cpp installation and model at $model_path."
-else
-  need_whisper=1
-  transcription_plan="Install whisper.cpp if needed and download ggml-${model_name}.bin as the fallback model."
-  if [[ -z "$whisper_cli" ]]; then
-    packages+=(whisper.cpp)
+need_parakeet=0
+transcription_ready=0
+case "$backend_choice" in
+  auto)
+    if [[ -n "$parakeet_cli" && -n "$parakeet_model" ]]; then
+      transcription_plan="Reuse MacParakeet with its installed Parakeet $parakeet_model model; no speech-model download."
+      transcription_ready=1
+    elif [[ -n "$whisper_cli" && -r "$model_path" ]]; then
+      transcription_plan="Reuse the existing whisper.cpp installation and model at $model_path; no speech-model download."
+      transcription_ready=1
+    elif [[ -n "$parakeet_cli" ]]; then
+      need_parakeet=1
+      transcription_plan="Download the recommended $parakeet_download_id model through the existing MacParakeet installation."
+    else
+      need_whisper=1
+      transcription_plan="MacParakeet is unavailable; install whisper.cpp and download the minimal recommended fallback ggml-${model_name}.bin."
+    fi
+    ;;
+  parakeet)
+    if [[ -z "$parakeet_cli" ]]; then
+      echo "MacParakeet is not installed. Install it first or choose --backend whisper." >&2
+      exit 1
+    elif [[ -n "$parakeet_model" ]]; then
+      transcription_plan="Reuse the installed Parakeet $parakeet_model model; no speech-model download."
+      transcription_ready=1
+    else
+      need_parakeet=1
+      transcription_plan="Download the explicitly selected $parakeet_download_id model through MacParakeet."
+    fi
+    ;;
+  whisper)
+    if [[ -n "$whisper_cli" && -r "$model_path" ]]; then
+      transcription_plan="Reuse the explicitly selected Whisper model at $model_path; no speech-model download."
+      transcription_ready=1
+    else
+      need_whisper=1
+      transcription_plan="Install whisper.cpp if needed and download the explicitly selected ggml-${model_name}.bin model."
+    fi
+    ;;
+esac
+
+if [[ "$need_whisper" -eq 1 && -z "$whisper_cli" ]]; then
+  packages+=(whisper.cpp)
+fi
+
+parakeet_download_size=""
+if [[ "$need_parakeet" -eq 1 ]]; then
+  parakeet_download_size=$(vf_macparakeet_model_size "$parakeet_cli" "$parakeet_download_id" || true)
+  if [[ -z "$parakeet_download_size" ]]; then
+    echo "MacParakeet does not report a model named $parakeet_download_id." >&2
+    exit 1
   fi
 fi
 
 case "$model_name" in
-  tiny) model_size="about 75 MB" ;;
-  base) model_size="about 142 MB" ;;
-  small) model_size="about 466 MB" ;;
-  medium) model_size="about 1.5 GB" ;;
-  large*) model_size="roughly 1.5-3 GB, depending on the variant" ;;
+  tiny) model_size="75 MiB" ;;
+  base) model_size="142 MiB" ;;
+  small) model_size="466 MiB" ;;
+  medium) model_size="1.5 GiB" ;;
+  large*) model_size="2.9 GiB for the full large model; quantized variants may be smaller" ;;
   *) model_size="size varies by model" ;;
 esac
 
@@ -85,12 +148,14 @@ printf '\nInstallation plan\n'
 printf '  Transcription: %s\n' "$transcription_plan"
 if [[ "${#packages[@]}" -gt 0 ]]; then
   printf '  Homebrew:      install %s\n' "${packages[*]}"
-  printf '  Disk/network:  Homebrew and transitive dependencies may require hundreds of MB to several GB.\n'
+  printf '  Core download: system-dependent Homebrew bottles only; no speech model is included.\n'
 else
   printf '  Homebrew:      no missing formulae detected\n'
 fi
 if [[ "$need_whisper" -eq 1 && ! -r "$model_path" ]]; then
   printf '  Model:         download %s (%s)\n' "ggml-${model_name}.bin" "$model_size"
+elif [[ "$need_parakeet" -eq 1 ]]; then
+  printf '  Model:         download %s (%s)\n' "$parakeet_download_id" "$parakeet_download_size"
 fi
 printf '  Privacy:       local processing; no recording is uploaded by these scripts\n'
 
@@ -102,7 +167,7 @@ if [[ "$install" -eq 0 ]]; then
 fi
 
 changes_needed=0
-if [[ "${#packages[@]}" -gt 0 || ( "$need_whisper" -eq 1 && ! -r "$model_path" ) ]]; then
+if [[ "${#packages[@]}" -gt 0 || "$need_parakeet" -eq 1 || ( "$need_whisper" -eq 1 && ! -r "$model_path" ) ]]; then
   changes_needed=1
 fi
 
@@ -139,6 +204,18 @@ else
 fi
 
 mkdir -p "$project_dir/models"
+if [[ "$need_parakeet" -eq 1 ]]; then
+  printf 'Downloading MacParakeet model %s (%s)...\n' "$parakeet_download_id" "$parakeet_download_size"
+  DO_NOT_TRACK=1 MACPARAKEET_TELEMETRY=0 "$parakeet_cli" models download "$parakeet_download_id"
+  DO_NOT_TRACK=1 MACPARAKEET_TELEMETRY=0 "$parakeet_cli" models select "$parakeet_download_id" >/dev/null
+  parakeet_model=$(VIDEO_FINDINGS_PARAKEET_MODEL="$parakeet_download_id" vf_macparakeet_model "$parakeet_cli" || true)
+  if [[ -z "$parakeet_model" ]]; then
+    echo "MacParakeet did not report the downloaded model as installed." >&2
+    exit 1
+  fi
+  transcription_ready=1
+fi
+
 if [[ "$need_whisper" -eq 1 && ! -s "$model_path" ]]; then
   model_url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${model_name}.bin"
   temporary_path="$model_path.partial"
@@ -157,12 +234,15 @@ else
   fi
 fi
 
-VIDEO_FINDINGS_MODEL_PATH="$model_path" "$script_dir/check-environment" --require-transcription
+VIDEO_FINDINGS_MODEL_PATH="$model_path" \
+  VIDEO_FINDINGS_PARAKEET_MODEL="${parakeet_model:-$parakeet_download_id}" \
+  "$script_dir/check-environment" --require-transcription
 
 smoke_dir=$(mktemp -d "${TMPDIR:-/tmp}/video-findings-setup.XXXXXX")
 trap 'rm -rf "$smoke_dir"' EXIT
 say -o "$smoke_dir/smoke.aiff" "Video Findings local transcription test."
 ffmpeg -hide_banner -loglevel error -y -i "$smoke_dir/smoke.aiff" "$smoke_dir/smoke.wav"
 VIDEO_FINDINGS_MODEL_PATH="$model_path" \
+  VIDEO_FINDINGS_PARAKEET_MODEL="${parakeet_model:-$parakeet_download_id}" \
   "$script_dir/transcribe-local" "$smoke_dir/smoke.wav" "$smoke_dir/smoke.vtt" en >/dev/null
 echo "Local transcription smoke test passed."

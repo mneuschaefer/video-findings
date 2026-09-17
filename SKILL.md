@@ -21,8 +21,12 @@ enough.
 1. Run `scripts/check-environment --video <path>` before reading the recording.
    On macOS, run `scripts/setup-macos` to show the read-only installation plan.
    Prefer an already installed MacParakeet model. Explain every missing package,
-   the approximate model size, and that Homebrew dependencies can require up to
-   several gigabytes. Ask before running `scripts/setup-macos --install --yes`.
+   the selected model and its reported size. Ensure one local transcription
+   model is ready, but never download another when a compatible model already
+   exists. Recommend the currently tested Parakeet TDT v3 on a compatible Mac;
+   let the user choose another supported backend/model in the read-only plan.
+   Ask before running `scripts/setup-macos --install --yes` with those same
+   options.
 2. Prefer a supplied `.vtt` or `.srt`, especially one downloaded with a Teams
    recording. If none exists, use `scripts/transcribe-local` or the end-to-end
    `scripts/analyze-recording`; both prefer ready local MacParakeet/Parakeet and

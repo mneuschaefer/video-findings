@@ -164,6 +164,78 @@ class PipelineTests(unittest.TestCase):
             if script.is_file():
                 subprocess.run(["bash", "-n", script], check=True)
 
+    def test_setup_plans_one_recommended_model_and_allows_override(self):
+        root = Path(__file__).parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            fake_parakeet = temporary / "macparakeet-cli"
+            fake_parakeet.write_text(
+                "#!/bin/sh\nprintf '%s\\n' "
+                "'[{\"engine\":\"parakeet\",\"installed\":false,"
+                "\"variant\":\"v3\",\"id\":\"parakeet-v3\","
+                "\"size\":\"~465 MB\"}]'\n",
+                encoding="utf-8",
+            )
+            fake_parakeet.chmod(0o755)
+            environment = os.environ.copy()
+            environment["VIDEO_FINDINGS_MACPARAKEET_CLI"] = str(fake_parakeet)
+            environment["VIDEO_FINDINGS_MODEL_PATH"] = str(temporary / "missing.bin")
+
+            recommended = subprocess.run(
+                [str(root / "scripts" / "setup-macos")],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+            self.assertIn("recommended parakeet-v3", recommended.stdout)
+            self.assertIn("download parakeet-v3 (~465 MB)", recommended.stdout)
+            self.assertEqual(recommended.stdout.count("  Model:         download"), 1)
+
+            explicit = subprocess.run(
+                [
+                    str(root / "scripts" / "setup-macos"),
+                    "--backend",
+                    "whisper",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+            self.assertIn("explicitly selected ggml-base.bin", explicit.stdout)
+            self.assertIn("Model:         download", explicit.stdout)
+            self.assertIn("142 MiB", explicit.stdout)
+
+    def test_explicit_newer_installed_parakeet_variant_can_be_selected(self):
+        root = Path(__file__).parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            fake_parakeet = Path(directory) / "macparakeet-cli"
+            fake_parakeet.write_text(
+                "#!/bin/sh\nprintf '%s\\n' "
+                "'[{\"engine\":\"parakeet\",\"installed\":true,"
+                "\"variant\":\"v4\",\"id\":\"parakeet-v4\"}]'\n",
+                encoding="utf-8",
+            )
+            fake_parakeet.chmod(0o755)
+            environment = os.environ.copy()
+            environment["VIDEO_FINDINGS_PARAKEET_MODEL"] = "v4"
+            result = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    'source "$1"; vf_macparakeet_model "$2"',
+                    "test",
+                    str(root / "scripts" / "lib" / "transcription-backends.sh"),
+                    str(fake_parakeet),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+            self.assertEqual(result.stdout.strip(), "v4")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,7 +32,8 @@ Run a read-only check first:
 ./scripts/setup-macos
 ```
 
-Install missing dependencies only after reviewing the requested changes:
+Install the approved core dependencies and single selected model only after
+reviewing the requested changes:
 
 ```bash
 ./scripts/setup-macos --install
@@ -51,24 +52,64 @@ The install mode:
 1. detects a ready MacParakeet/Parakeet installation first;
 2. prints the complete plan before changing anything;
 3. requires an existing Homebrew installation only when formulae are missing;
-4. requests only missing `python` and `ffmpeg` formulae, plus `whisper.cpp`
-   only when no ready local transcription backend exists;
-5. downloads the selected Whisper model from the official whisper.cpp model
-   repository on Hugging Face only for that fallback path;
+4. requests only missing core formulae;
+5. reuses an existing compatible model or downloads exactly the one model in
+   the approved plan;
 6. validates commands, model readability, and project write access;
-7. runs a short local transcription smoke test. If the Whisper Metal/GPU
+7. runs a short local transcription smoke test when a backend is ready. If the Whisper Metal/GPU
    backend fails, the wrapper retries with `whisper.cpp --no-gpu`.
+
+If neither Parakeet nor a complete local Whisper setup is ready, setup plans
+exactly one model so video-only transcription works. With MacParakeet present,
+the default is the currently tested Parakeet TDT v3. Without MacParakeet, the
+default is the Whisper `base` fallback. Choose a different plan before approval
+when another model better fits the machine or language:
+
+```bash
+./scripts/setup-macos --backend parakeet --parakeet-model parakeet-v3
+./scripts/setup-macos --backend whisper --model small
+```
+
+The corresponding `--install` invocation must use the same options. The setup
+never downloads more than one speech model.
 
 It does not install Homebrew automatically, request administrator privileges,
 upload media, or modify shell startup files. When Homebrew is missing, it stops
 and points to `https://brew.sh`.
 
-The default Whisper `base` model is about 142 MB. Other documented model sizes
-range from roughly 75 MB to several gigabytes. Homebrew may update package
-metadata and install or upgrade transitive dependencies; depending on what is
-already present, the total network and disk requirement can range from hundreds
-of megabytes to several gigabytes. The read-only setup plan makes this risk
-visible before approval, although Homebrew determines the exact dependency set.
+The additional speech-model download is **0 MiB when a compatible model is
+already installed**. Otherwise exactly one model is downloaded. MacParakeet
+currently reports Parakeet TDT v3 at ~465 MB. The minimum Whisper fallback
+`base` is 142 MiB; current upstream alternatives are `tiny` 75 MiB, `small`
+466 MiB, `medium` 1.5 GiB, and full `large` 2.9 GiB. Start with Parakeet v3, or
+Whisper `base` when MacParakeet is unavailable. Move to a larger or newer
+compatible model only when the machine, language, or transcript quality calls
+for it. Homebrew may separately fetch missing Python, FFmpeg, or `whisper.cpp`
+bottles and system-specific dependencies; the read-only plan lists the exact
+formulae separately from the one model download.
+The Whisper sizes come from the official
+[whisper.cpp model table](https://github.com/ggml-org/whisper.cpp#memory-usage).
+
+Parakeet TDT v3 is the currently tested and preferred backend. This is a
+baseline rather than a permanent version lock. A newer model exposed by
+`macparakeet-cli models list` can be selected in the plan before installation:
+
+```bash
+./scripts/setup-macos --backend parakeet --parakeet-model NEW_MODEL_ID
+```
+
+To select a compatible model that is already installed, use:
+
+```bash
+export VIDEO_FINDINGS_PARAKEET_MODEL="NEW_VARIANT"
+```
+
+The setup will not search for or switch to a newer model by itself. A compatible
+existing Whisper GGML model can likewise be supplied through
+`VIDEO_FINDINGS_MODEL_PATH`. This allows deliberate upgrades without turning
+ordinary setup into an automatic multi-model download.
+For current upstream Parakeet variants, see FluidAudio's
+[ASR model guide](https://github.com/FluidInference/FluidAudio/blob/main/Documentation/Models.md).
 
 Automatic selection prefers Parakeet. Override it for one run when needed:
 
@@ -80,7 +121,7 @@ VIDEO_FINDINGS_TRANSCRIBER=whisper ./scripts/transcribe-local input.mov output.v
 Choose a different model when needed:
 
 ```bash
-./scripts/setup-macos --install --model small
+./scripts/setup-macos --install --backend whisper --model small
 export VIDEO_FINDINGS_MODEL_PATH="$PWD/models/ggml-small.bin"
 ```
 
