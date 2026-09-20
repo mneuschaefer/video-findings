@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+# A saved executable takes precedence over discovery. The file is data, not shell.
+vf_configured_transcriber() {
+  local root=$1
+  if [[ -n "${VIDEO_FINDINGS_TRANSCRIBER_COMMAND:-}" ]]; then
+    printf '%s\n' "$VIDEO_FINDINGS_TRANSCRIBER_COMMAND"
+  elif [[ -f "$root/models/transcriber-path" ]]; then
+    head -n 1 "$root/models/transcriber-path"
+  fi
+}
+
 vf_find_macparakeet_cli() {
   if [[ -n "${VIDEO_FINDINGS_MACPARAKEET_CLI:-}" && -x "${VIDEO_FINDINGS_MACPARAKEET_CLI}" ]]; then
     printf '%s\n' "${VIDEO_FINDINGS_MACPARAKEET_CLI}"

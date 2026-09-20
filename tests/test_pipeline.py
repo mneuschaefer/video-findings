@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -18,6 +19,47 @@ SPEC.loader.exec_module(MODULE)
 
 
 class PipelineTests(unittest.TestCase):
+    def test_configured_adapter_validates_output_without_fallback(self):
+        root = Path(__file__).parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            adapter = folder / 'adapter with spaces'
+            media = folder / 'input.mov'
+            media.write_bytes(b'test')
+            output = folder / 'result.vtt'
+            env = dict(os.environ, VIDEO_FINDINGS_TRANSCRIBER='auto',
+                       VIDEO_FINDINGS_TRANSCRIBER_COMMAND=str(adapter))
+            adapter.write_text('#!/bin/sh\nprintf "WEBVTT\\n\\n00:00:01.000 --> 00:00:02.000\\nHello\\n" > "$2"\n')
+            adapter.chmod(0o755)
+            command = [str(root / 'scripts/transcribe-local'), str(media), str(output)]
+            subprocess.run(command, env=env, check=True, capture_output=True)
+            self.assertEqual(MODULE.parse_transcript(output)[0].text, 'Hello')
+            original = output.read_text()
+            adapter.write_text('#!/bin/sh\nprintf "not a transcript" > "$2"\n')
+            result = subprocess.run(command, env=env, capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(output.read_text(), original)
+            adapter.unlink()
+            result = subprocess.run(command, env=env, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('no fallback', result.stderr)
+
+    def test_mlx_adapter_forces_offline_and_writes_requested_output(self):
+        root = Path(__file__).parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            cli = folder / 'parakeet-mlx'
+            cli.write_text('#!/bin/sh\n[ "$HF_HUB_OFFLINE" = 1 ] || exit 7\n'
+                           'while [ "$#" -gt 0 ]; do\n'
+                           'if [ "$1" = --output-dir ]; then shift; out=$1; fi\n'
+                           'shift\ndone\nprintf "WEBVTT\\n" > "$out/transcript.vtt"\n')
+            cli.chmod(0o755)
+            output = folder / 'custom.vtt'
+            subprocess.run([str(root / 'scripts/transcribe-parakeet-mlx'),
+                            'input.mov', str(output)], check=True,
+                           env=dict(os.environ, VIDEO_FINDINGS_MLX_CLI=str(cli)))
+            self.assertEqual(output.read_text(), 'WEBVTT\n')
+
     def test_parses_vtt_and_strips_tags(self):
         content = "WEBVTT\n\n00:00:01.000 --> 00:00:02.500\n<b>No response</b>\n"
         with tempfile.TemporaryDirectory() as directory:
@@ -298,6 +340,10 @@ class PipelineTests(unittest.TestCase):
         root = Path(__file__).parents[1]
         with tempfile.TemporaryDirectory() as directory:
             temporary = Path(directory)
+            # Installer planning must not inherit the developer's saved adapter.
+            isolated_root = temporary / 'package'
+            shutil.copytree(root / 'scripts', isolated_root / 'scripts')
+            root = isolated_root
             fake_parakeet = temporary / "macparakeet-cli"
             fake_parakeet.write_text(
                 "#!/bin/sh\nprintf '%s\\n' "

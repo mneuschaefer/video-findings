@@ -21,6 +21,8 @@ rsync -a \
   --exclude 'output/*' \
   --exclude 'models/*.bin' \
   --exclude 'models/.force-cpu' \
+  --exclude 'models/transcriber-path' \
+  --exclude 'models/FluidAudio-runtime' \
   --exclude 'validation' \
   "$project_dir/" "$package_dir/"
 

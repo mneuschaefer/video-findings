@@ -58,6 +58,13 @@ if [[ "$(uname -s)" != Darwin ]]; then
 fi
 
 packages=()
+configured=$(vf_configured_transcriber "$project_dir")
+if [[ -n "$configured" && "$backend_choice" == auto ]]; then
+  printf 'Saved transcriber: %s\n' "$configured"
+  "$script_dir/check-environment" --require-transcription
+  echo 'Reuse this transcriber. No model installation is planned.'
+  exit 0
+fi
 if ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)'; then
   packages+=(python)
 fi

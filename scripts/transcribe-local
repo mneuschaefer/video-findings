@@ -25,6 +25,28 @@ case "$output_vtt" in
   *.vtt|*.VTT) ;;
   *) echo "Output must end in .vtt: $output_vtt" >&2; exit 2 ;;
 esac
+configured=$(vf_configured_transcriber "$project_dir")
+if [[ -n "$configured" && "$requested_backend" == auto ]]; then
+  if [[ ! -x "$configured" ]]; then
+    echo "Configured transcriber is unavailable: $configured. Repair it or rerun scripts/configure-transcriber; no fallback was selected." >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$output_vtt")"
+  configured_tmp=$(mktemp -d "${TMPDIR:-/tmp}/vf-transcript.XXXXXX")
+  trap 'rm -rf "$configured_tmp"' EXIT
+  "$configured" "$input_media" "$configured_tmp/transcript.vtt" "$language"
+  python3 - "$project_dir" "$configured_tmp/transcript.vtt" <<'PY'
+import sys
+sys.path.insert(0, sys.argv[1] + '/src')
+from video_findings import parse_transcript
+cues = parse_transcript(__import__('pathlib').Path(sys.argv[2]))
+if not cues or any(c.start < 0 or c.end <= c.start for c in cues):
+    raise SystemExit('Transcriber did not produce nonempty, valid timestamped VTT.')
+PY
+  mv "$configured_tmp/transcript.vtt" "$output_vtt"
+  printf 'Wrote %s using %s\n' "$output_vtt" "$configured"
+  exit 0
+fi
 case "$requested_backend" in
   auto|parakeet|whisper) ;;
   *) echo "VIDEO_FINDINGS_TRANSCRIBER must be auto, parakeet, or whisper." >&2; exit 2 ;;

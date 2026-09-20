@@ -23,6 +23,8 @@ examples/generated/
 # Local models and runtime state
 models/*.bin
 models/.force-cpu
+models/transcriber-path
+models/FluidAudio-runtime/
 !models/.gitkeep
 
 # Build and validation artifacts

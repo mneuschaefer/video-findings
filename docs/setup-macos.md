@@ -1,5 +1,115 @@
 # macOS setup
 
+## Recommended one-time setup on Apple Silicon
+
+### Existing FluidAudio CoreML models
+
+This path has been [validated locally on an Apple M4](validated-local-transcription.md)
+with the 82-second English demo and a short German speech sample.
+
+If compatible Parakeet CoreML models already exist, reuse them with the standalone
+FluidAudio CLI. Do not install MLX-format weights just because a CLI is missing.
+No MacParakeet or VoiceInk app is required. After approval for runtime setup:
+
+```bash
+git clone --depth 1 --branch v0.15.8 https://github.com/FluidInference/FluidAudio.git models/FluidAudio-runtime
+swift build --package-path models/FluidAudio-runtime -c release \
+  --product fluidaudiocli --disable-default-traits --disable-keychain --disable-netrc
+./scripts/configure-transcriber ./scripts/transcribe-fluidaudio \
+  --test-media assets/narrated-demo.mp4
+```
+
+This downloads and builds runtime source/dependencies, not model weights. The
+public build needs no GitHub credentials: keychain/netrc access is explicitly
+disabled. Swift may still fetch its declared text-processing binary artifact
+(about 49 MB) despite disabled default traits.
+
+The adapter uses `--local-model-dir`, whose loader fails on missing components
+instead of downloading replacements. Its default model directory is
+`~/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3`.
+This is a default location, not proof of compatibility: v0.15.8 requires the
+v3 joint component `JointDecisionv3.mlmodelc` and matching vocabulary. Point
+`VIDEO_FINDINGS_FLUIDAUDIO_MODEL` at the actual compatible directory when needed;
+`VIDEO_FINDINGS_FLUIDAUDIO_CLI` selects an existing CLI build. Preserve nondefault
+settings in the user's environment or an adapter executable before registration.
+Existing incomplete/older bundles need an explicit compatibility decision,
+never a silent download. Runtime files remain local and are excluded from releases.
+
+### New setup without reusable CoreML models
+
+Already have a timestamped VTT/SRT? Use it directly. Already have a working
+local transcriber? Reuse it. No particular app or model is required.
+
+For a new Apple Silicon setup, [Parakeet MLX](https://github.com/senstella/parakeet-mlx)
+is a practical option with local multilingual transcription and VTT output.
+It needs FFmpeg, its Python dependencies, and MLX-format model weights. Existing
+FluidAudio CoreML files are a different format and cannot replace those weights.
+Intel Macs can use the existing Whisper path described below.
+
+**Before installing:** the assistant must show one concrete plan with packages,
+model, download sources, target locations, and expected download sizes. If the
+size is unknown, say so; model downloads can be large. Ask for approval once,
+or let the user run the commands themselves. Reading this guide is not approval.
+Do not invoke first-run download commands during ordinary dependency checks.
+
+After approval, with `uv` and FFmpeg available:
+
+```bash
+uv tool install parakeet-mlx==0.5.2
+HF_HUB_DISABLE_XET=1 parakeet-mlx assets/narrated-demo.mp4 \
+  --model mlx-community/parakeet-tdt-0.6b-v3 \
+  --output-format vtt --output-dir output/transcription-check
+```
+
+The second command downloads approximately 2.51 GB of model weights (plus
+small configuration files) on first use from Hugging Face and
+transcribes the bundled demo. Packages live in uv's tool environment (`uv tool
+dir`); weights normally live under `~/.cache/huggingface/hub`, unless Hugging Face
+cache variables override it. Python/runtime dependencies take additional space;
+uv reports their downloads separately. `HF_HUB_DISABLE_XET=1` uses the standard
+HTTP download route; it does not alter the model or transcription quality.
+Resolve these actual destinations in the plan.
+For model sizes and files, consult the
+[model repository](https://huggingface.co/mlx-community/parakeet-tdt-0.6b-v3/tree/main).
+If uv or FFmpeg is missing, include it in the same approval plan rather than
+assuming it is installed. Installation details are in the upstream link above.
+
+Verify offline reuse and save the adapter once:
+
+```bash
+./scripts/configure-transcriber ./scripts/transcribe-parakeet-mlx \
+  --test-media assets/narrated-demo.mp4
+```
+
+This tests fresh transcription with downloads disabled, validates timestamped
+output, and only then writes `models/transcriber-path`. That machine-local file
+is excluded from Git and release archives. Subsequent recordings use:
+
+```bash
+./scripts/analyze-recording --video /path/to/review.mov --output output/review
+```
+
+Normal Parakeet MLX runs enforce `HF_HUB_OFFLINE=1`. A missing model causes an
+error, not a download or a backend change. Language is detected automatically.
+The wrapper finds `parakeet-mlx` on PATH or in `~/.local/bin`; a nonstandard
+location can be set with `VIDEO_FINDINGS_MLX_CLI`. `VIDEO_FINDINGS_MLX_MODEL`
+selects another compatible cached model. Preserve any such overrides in the
+user's environment or a small adapter executable and verify them before saving.
+
+Any other local backend can be saved using the same configuration command. Its
+adapter must accept `INPUT OUTPUT_VTT [LANGUAGE]`, write valid nonempty VTT,
+return nonzero on failure, and never install or download during ordinary runs.
+The generic wrapper cannot enforce offline behavior inside third-party adapters;
+verify their offline settings during setup. It invokes the saved file directly,
+without evaluating shell command text. A broken saved path needs repair or
+reconfiguration. It must not cause a fresh search or automatic installation.
+
+## Legacy built-in setup
+
+The following describes the existing MacParakeet/Whisper installer. It is an
+alternative, not a prerequisite for the configured adapter above. If an adapter
+is saved, the default setup checks it and does not plan another model download.
+
 ## Supported setup
 
 The package is designed for a local, writable checkout on macOS. It is tested
@@ -15,14 +125,24 @@ Required for all runs:
 
 Required only when no VTT/SRT transcript is available:
 
-- either MacParakeet with an already downloaded Parakeet model (preferred), or
-  `whisper.cpp` with a local GGML Whisper model (fallback).
+- a callable compatible local transcription tool and a readable model.
 
-Video Findings checks the standalone `macparakeet-cli` and the CLI bundled in
-`/Applications/MacParakeet.app`. When both its CLI and a local Parakeet model
-are ready, that installation is reused without downloading another speech
-model. The transcription wrapper disables MacParakeet telemetry for its runs
-and uses `--no-history`, so those jobs are not added to MacParakeet history.
+The bundled transcription wrapper currently supports the standalone
+`macparakeet-cli`, the CLI bundled in `/Applications/MacParakeet.app`, and
+`whisper.cpp`. A compatible external adapter may also be used when explicitly
+configured. Before installing anything, the agent should quietly inspect the
+backend's own model listing and common local locations such as the project
+`models/` directory and
+`~/Library/Application Support/FluidAudio/Models/`. These are discovery hints,
+not a fixed list of supported model names or versions.
+
+When both a callable tool and a compatible model are ready, reuse them without
+another speech-model download. A model directory without a callable tool is a
+reusable asset, but not a ready automatic transcription path. In that case,
+offer once to help install a compatible local tool or let the user provide a
+timestamped transcript from an existing application. Do not replace the model
+automatically. When the wrapper invokes MacParakeet, it disables telemetry for
+that process and uses `--no-history`.
 
 ## Safe setup behavior
 
@@ -32,8 +152,12 @@ Run a read-only check first:
 ./scripts/setup-macos
 ```
 
-Install the approved core dependencies and single selected model only after
-reviewing the requested changes:
+The setup script reports only the backends it can install or call itself. Its
+fallback proposal is not evidence that no compatible model exists elsewhere.
+Review any discovered external models before accepting the plan.
+
+Install the approved core dependencies and at most one selected model only
+after reviewing the requested changes:
 
 ```bash
 ./scripts/setup-macos --install

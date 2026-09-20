@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Verify a local adapter on real media before saving its executable path."""
+import argparse
+import os
+from pathlib import Path
+import subprocess
+import tempfile
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('executable', type=Path)
+parser.add_argument('--test-media', type=Path, required=True)
+args = parser.parse_args()
+root = Path(__file__).resolve().parents[1]
+adapter = args.executable.resolve()
+if not adapter.is_file() or not os.access(adapter, os.X_OK):
+    parser.error('Adapter must be an executable file accepting INPUT OUTPUT_VTT [LANGUAGE].')
+if adapter == root / 'scripts/transcribe-local':
+    parser.error('Select a backend adapter, not transcribe-local itself (recursive call).')
+if '\n' in str(adapter):
+    parser.error('Executable path cannot contain a newline.')
+environment = dict(os.environ, VIDEO_FINDINGS_TRANSCRIBER_COMMAND=str(adapter),
+                   VIDEO_FINDINGS_TRANSCRIBER='auto')
+with tempfile.TemporaryDirectory(prefix='vf-configure-') as temporary:
+    subprocess.run([str(root / 'scripts/transcribe-local'),
+                    str(args.test_media.resolve()), str(Path(temporary) / 'test.vtt')],
+                   env=environment, check=True)
+state = root / 'models/transcriber-path'
+state.parent.mkdir(parents=True, exist_ok=True)
+state.write_text(str(adapter) + '\n', encoding='utf-8')
+print(f'Verified and saved local transcriber: {adapter}')

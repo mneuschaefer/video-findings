@@ -85,4 +85,4 @@ if [[ "$motion_scan" == "on" ]]; then
   printf 'Motion index: %s/material/motion-1s.tsv\n' "$output"
 fi
 printf 'Structured data: %s/material/candidates.json\n' "$output"
-printf 'An agent must review all transcript cues in any source language, preserve described bugs without inventing missing product context, replace the dossier with detailed final findings, and write material/findings.json. Unless the prompt requests another layout, keep only Video Findings.md at the output root. The first pass keeps one captioned image per finding and offers selected dynamic clips on request.\n'
+printf 'Next: read transcript-cues.json once, extract and view useful images, then write a concise Video Findings.md. Structured findings.json and deeper investigation are optional, not required.\n'

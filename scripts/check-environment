@@ -63,6 +63,16 @@ PY
 fi
 
 transcription_ready=0
+configured=$(vf_configured_transcriber "$project_dir")
+if [[ -n "$configured" && "${VIDEO_FINDINGS_TRANSCRIBER:-auto}" == auto ]]; then
+  if [[ -x "$configured" ]]; then
+    printf 'ok      configured transcriber %s (runtime verified during transcription)\n' "$configured"
+    transcription_ready=1
+  elif [[ "$require_transcription" -eq 1 ]]; then
+    printf 'missing configured transcriber %s; repair or reconfigure it\n' "$configured"
+    missing=1
+  fi
+else
 parakeet_cli=$(vf_find_macparakeet_cli || true)
 parakeet_model=""
 if [[ -n "$parakeet_cli" ]]; then
@@ -92,6 +102,7 @@ if [[ -f "$model_path" && -r "$model_path" ]]; then
   fi
 else
   printf 'optional %-18s %s\n' 'Whisper model' "$model_path"
+fi
 fi
 if [[ "$require_transcription" -eq 1 && "$transcription_ready" -eq 0 ]]; then
   printf 'missing %-18s %s\n' 'Transcription' 'no complete local backend is ready'
@@ -162,7 +173,7 @@ if [[ "$missing" -ne 0 ]]; then
 fi
 
 if [[ "$transcription_ready" -eq 0 ]]; then
-  printf '\nCore environment is ready. Local transcription is not installed; existing VTT/SRT files still work.\n'
+  printf '\nCore environment is ready. No configured or built-in transcriber was detected; other local installations may exist. Existing VTT/SRT files still work.\n'
 else
   printf '\nEnvironment is ready, including local transcription.\n'
 fi

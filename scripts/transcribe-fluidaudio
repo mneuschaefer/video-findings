@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Local FluidAudio CLI adapter. Reuses CoreML weights; never downloads models."""
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+if len(sys.argv) not in (3, 4):
+    raise SystemExit('Usage: transcribe-fluidaudio INPUT OUTPUT_VTT [LANGUAGE]')
+root = Path(__file__).resolve().parents[1]
+cli = Path(os.environ.get('VIDEO_FINDINGS_FLUIDAUDIO_CLI',
+    str(root / 'models/FluidAudio-runtime/.build/release/fluidaudiocli')))
+model = Path(os.environ.get('VIDEO_FINDINGS_FLUIDAUDIO_MODEL',
+    str(Path.home() / 'Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3')))
+version = os.environ.get('VIDEO_FINDINGS_FLUIDAUDIO_VERSION', 'v3')
+if not cli.is_file() or not os.access(cli, os.X_OK):
+    raise SystemExit(f'FluidAudio executable missing: {cli}. See docs/setup-macos.md.')
+if not model.is_dir():
+    raise SystemExit(f'Local CoreML model missing: {model}. Configure its actual directory; no download attempted.')
+
+def timestamp(seconds):
+    ms = round(seconds * 1000)
+    return f'{ms // 3600000:02}:{ms // 60000 % 60:02}:{ms // 1000 % 60:02}.{ms % 1000:03}'
+
+with tempfile.TemporaryDirectory(prefix='vf-fluid-') as temporary:
+    wav = Path(temporary) / 'audio.wav'
+    result = Path(temporary) / 'transcript.json'
+    subprocess.run([str(root / 'scripts/extract-audio'), sys.argv[1], str(wav)], check=True)
+    command = [str(cli), 'transcribe', str(wav), '--local-model-dir', str(model),
+               '--model-version', version, '--output-json', str(result)]
+    run = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if run.returncode or not result.is_file():
+        raise SystemExit(run.stdout[-6000:] or 'FluidAudio produced no timestamped JSON.')
+    data = json.loads(result.read_text())
+    words = data.get('wordTimings', [])
+    if not words:
+        raise SystemExit('FluidAudio returned no word timestamps; refusing to invent timings.')
+    cues, group = [], []
+    for word in words:
+        start, end = float(word['startTime']), float(word['endTime'])
+        if not math.isfinite(start) or not math.isfinite(end) or start < 0 or end <= start:
+            raise SystemExit('Invalid word timestamps from FluidAudio.')
+        if group and (len(group) >= 12 or start - group[-1]['endTime'] > 0.7):
+            cues.append(group)
+            group = []
+        group.append(word)
+        if str(word['word']).rstrip().endswith(('.', '?', '!')):
+            cues.append(group)
+            group = []
+    if group:
+        cues.append(group)
+    output = ['WEBVTT', '']
+    for cue in cues:
+        output.extend([f"{timestamp(cue[0]['startTime'])} --> {timestamp(cue[-1]['endTime'])}",
+                       ' '.join(w['word'].strip() for w in cue), ''])
+    destination = Path(sys.argv[2])
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text('\n'.join(output), encoding='utf-8')
+    print(f'FluidAudio {version}: {len(cues)} cues; model {model}; processing {data.get("processingTimeSeconds")} s')

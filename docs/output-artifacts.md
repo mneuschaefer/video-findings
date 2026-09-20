@@ -1,5 +1,17 @@
 # Output artifacts
 
+For ordinary runs, follow the compact workflow in SKILL.md. Keyword candidates
+and motion indexes below are optional diagnostic artifacts. One representative
+image accompanies a persistent or static finding. Exactly two may be used when
+comparing two separately stable states explains the finding without depending
+on the transition between them. Motion- or timing-dependent findings instead
+use one orientation image and offer an optional clip. The primary image stays
+in `representative_image`, with the second in `additional_images`, when a
+structured JSON export is explicitly requested. Ordinary runs produce the
+Markdown report, pictures and complete transcript without this export.
+Legacy single-image descriptions below describe the sparse preparation output,
+not a requirement to discard useful images from the final report.
+
 The first pass creates a sparse overview and preserves enough source material
 to regenerate later reports without retranscribing the recording.
 
@@ -19,20 +31,20 @@ links.
 
 | Artifact | Purpose |
 |---|---|
-| `Video Findings.md` | One scrollable, detailed, human-readable dossier |
+| `Video Findings.md` | One concise, human-readable report |
 | `material/transcript-source.vtt` or `.srt` | Preserved timestamped source transcript |
 | `material/transcript.md` | Complete readable transcript with timestamps and speakers when available |
 | `material/transcript-cues.json` | Complete machine-readable transcript source |
 | `material/candidates.json` | Optional deterministic leads for AI review |
 | `material/motion-1s.tsv` | Compact numeric whole-video motion index for routing |
 | `material/motion.tsv` | Detailed motion values for selected inspection windows |
-| `material/findings.json` | Structured findings for regeneration and conversion |
-| `material/finding-*.jpg` | One representative evidence image per final finding by default |
+| `material/findings.json` | Optional requested export for regeneration and conversion |
+| `material/finding-*.jpg` | One image per finding by default; at most two for a stable-state comparison |
 
 The report lists every described bug or actionable finding and distinguishes
 reported behavior from visible verification. Unknown product names,
 requirements, roles, severity, causes, or intended behavior stay unknown.
-Every finding heading begins with its timestamp. One or two detailed paragraphs
+Every finding heading begins with its timestamp. One concise paragraph can
 provide enough context for later tickets, followed by the representative image
 and a caption stating the image timestamp and visible state.
 Generic Status, Confidence, and Evidence labels are omitted from the dossier.
@@ -52,7 +64,8 @@ Each finding has an `evidence_need` value:
 
 - `static`: one representative image normally provides enough orientation;
 - `dynamic`: the claim depends on motion, timing, audio, or an intermediate
-  state. The first pass still includes only one image and the source interval.
+  state. The first pass still includes only one image and the source interval,
+  then offers a short clip with or without audio as an optional follow-up.
 
 Dynamic findings may additionally use `interaction`, `flicker`, `latency`,
 `audio-visual`, or `slow4x` as an internal extraction mode. Read

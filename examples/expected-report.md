@@ -19,9 +19,9 @@ transcript language unless another output language was requested.
 
 The completed first pass preserves the full transcript as source VTT, readable
 Markdown, and cue JSON under `material/`. It produces one detailed root-level
-`Video Findings.md`, reusable `material/findings.json`, and one captioned
-representative image per finding. Findings that depend
-on timing or motion are marked `dynamic`; clips are offered and generated only
+`Video Findings.md` and one captioned representative image per finding.
+Machine-readable `material/findings.json` is optional. Findings that depend on
+timing or motion are marked `dynamic`; clips are offered and generated only
 after the user selects a finding.
 
 Because this example contains a useful non-finding preference, the final

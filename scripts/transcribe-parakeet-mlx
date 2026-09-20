@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+  echo 'Usage: transcribe-parakeet-mlx INPUT OUTPUT_VTT [LANGUAGE]' >&2
+  exit 2
+fi
+cli=${VIDEO_FINDINGS_MLX_CLI:-}
+if [[ -z "$cli" ]]; then cli=$(command -v parakeet-mlx || true); fi
+if [[ -z "$cli" && -x "$HOME/.local/bin/parakeet-mlx" ]]; then
+  cli="$HOME/.local/bin/parakeet-mlx"
+fi
+if [[ -z "$cli" || ! -x "$cli" ]]; then
+  echo 'Parakeet MLX is missing. Follow docs/setup-macos.md (one-time setup).' >&2
+  exit 1
+fi
+model=${VIDEO_FINDINGS_MLX_MODEL:-mlx-community/parakeet-tdt-0.6b-v3}
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/vf-mlx.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT
+# Ordinary runs use cached weights only. The documented one-time download is
+# separate; an absent cache must not trigger an implicit model download.
+HF_HUB_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1 "$cli" "$1" \
+  --model "$model" --output-format vtt --output-dir "$scratch" \
+  --output-template transcript
+[[ -s "$scratch/transcript.vtt" ]] || { echo 'No VTT produced; check the local model cache.' >&2; exit 1; }
+mkdir -p "$(dirname "$2")"
+mv "$scratch/transcript.vtt" "$2"
+# Parakeet detects the spoken language; LANGUAGE is accepted for adapter parity.
