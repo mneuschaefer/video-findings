@@ -39,20 +39,20 @@ The timestamps identify where visual evidence is worth inspecting.
 Video Findings turns those moments into a compact report that can be reviewed
 or used as the basis for tickets:
 
-> **00:22.720 — Continue provides no visible response**
->
-> The reviewer selects standard delivery and presses Continue. They report no
-> visible response on two attempts and expect either the next step or a clear
-> error message.
->
-> 🖼️ *Embedded screenshot from the relevant moment · 00:27.120*
->
-> **01:08.720 — Discount message overlaps the order total**
->
-> The reviewer reports that the discount message overlaps the total, making the
-> final amount difficult to read.
->
-> 🖼️ *Embedded screenshot from the relevant moment · 01:13.640*
+```text
+00:22.720 — Continue provides no visible response
+The reviewer selects standard delivery and presses Continue. They report no
+visible response on two attempts and expect either the next step or a clear
+error message.
+
+🖼️ Embedded screenshot from the relevant moment · 00:27.120
+
+01:08.720 — Discount message overlaps the order total
+The reviewer reports that the discount message overlaps the total, making the
+final amount difficult to read.
+
+🖼️ Embedded screenshot from the relevant moment · 01:13.640
+```
 
 Every finding includes its selected screenshot directly in the report and links
 back to the complete transcript. **[Open the resulting findings report](examples/narrated-demo-report.md).**
