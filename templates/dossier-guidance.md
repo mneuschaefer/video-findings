@@ -1,8 +1,9 @@
 # Dossier writing guidance
 
-This file is the user-editable default for how `Video Findings.md` summarizes a
-recording. Change it for a recurring personal or team workflow. Instructions in
-the current prompt take precedence.
+This tracked file defines the repository default for how `Video Findings.md`
+summarizes a recording. Use `.video-findings/preferences.md` for recurring
+personal or machine-specific choices; change this file only to update the
+published default. Instructions in the current prompt take precedence.
 
 ## Default finding
 

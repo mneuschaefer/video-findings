@@ -26,6 +26,12 @@ ordinary report; do not create further subagents unless the user requests them.
 
 ## Normal run
 
+If `.video-findings/preferences.md` exists, read it once before starting. It may
+define recurring local choices such as report language, filename, structure or
+downstream format. The current prompt overrides local preferences. Do not edit
+tracked repository files to save a machine- or user-specific choice, and do not
+create or change the preferences file unless the user asks.
+
 Run the prepared local workflow once:
 
 ```bash
@@ -93,10 +99,12 @@ language. Preserve transcript quotes and visible UI labels in their source
 language. Mention uncertainty only when it materially changes the finding.
 
 The default output is the evidence-backed Markdown report above. A format
-requested in the current prompt takes precedence. For a recurring custom
-format, users may edit these output instructions; alternatively, finish this
-source report first and pass it to a separate ticket or user-story skill. A
-downstream format must preserve the report's source boundaries and evidence.
+requested in the current prompt takes precedence. For a recurring personal or
+machine-specific format, use `.video-findings/preferences.md`. Repository
+maintainers may edit these tracked output instructions to change the published
+default. Alternatively, finish the source report first and pass it to a
+separate ticket or user-story skill. A downstream format must preserve the
+report's source boundaries and evidence.
 
 ## Setup failures
 

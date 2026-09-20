@@ -20,6 +20,9 @@ output/*
 !output/.gitkeep
 examples/generated/
 
+# Machine- and user-specific preferences
+.video-findings/
+
 # Local models and runtime state
 models/*.bin
 models/.force-cpu

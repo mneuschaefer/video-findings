@@ -92,10 +92,26 @@ workflow can inspect and extract only the visual evidence that matters.
 
 By default, Video Findings creates one readable `Video Findings.md` with
 timestamped findings, relevant images, and a link to the complete transcript.
-For a one-off change, simply ask for a different format in your prompt. For a
-recurring format, edit the output instructions in [`SKILL.md`](SKILL.md). You
-can also keep the standard evidence-backed report and pass it to another skill,
-for example to create Jira tickets or user stories in your team's format.
+For a one-off change, simply ask for a different format in your prompt.
+
+For recurring local preferences, create
+`.video-findings/preferences.md` inside the repository, for example:
+
+```markdown
+# My local preferences
+
+- Write reports in German.
+- Name the report `Review.md`.
+- After the evidence-backed report, offer to create Jira tickets.
+```
+
+The entire `.video-findings/` directory is ignored by Git and excluded from
+release packages, so an assistant can remember local choices without modifying
+the shared skill. Current prompts always take precedence. Do not store passwords
+or API keys there. Repository maintainers can still edit [`SKILL.md`](SKILL.md)
+to change the published default. You can also keep the standard report and pass
+it to another skill, for example to create Jira tickets or user stories in your
+team's format.
 
 ## Local First by default
 

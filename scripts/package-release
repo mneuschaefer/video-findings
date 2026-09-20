@@ -17,6 +17,7 @@ rsync -a \
   --exclude '__pycache__' \
   --exclude 'dist' \
   --exclude 'examples/generated' \
+  --exclude '.video-findings' \
   --exclude 'input/*' \
   --exclude 'output/*' \
   --exclude 'models/*.bin' \
