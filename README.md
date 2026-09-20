@@ -65,7 +65,7 @@ explains how that workflow stays fast, local-first, and adaptable.
 Copy this into Codex, Claude Code, or another coding assistant:
 
 ```text
-Install Video Findings from https://github.com/mneuschaefer/video-findings on this Mac. Read SKILL.md first, show me the read-only setup plan, reuse compatible local transcription tools and models, ask before installing or downloading anything, keep my recordings local, and verify the setup with the included demo.
+Install Video Findings from https://github.com/mneuschaefer/video-findings on this Mac. Read SKILL.md first, create the ignored local preferences file from the included template, show me the read-only setup plan, reuse compatible local transcription tools and models, ask before installing or downloading anything, keep my recordings local, and verify the setup with the included demo.
 ```
 
 Then give it a recording:
@@ -94,24 +94,24 @@ By default, Video Findings creates one readable `Video Findings.md` with
 timestamped findings, relevant images, and a link to the complete transcript.
 For a one-off change, simply ask for a different format in your prompt.
 
-For recurring local preferences, create
-`.video-findings/preferences.md` inside the repository, for example:
+During installation, the assistant creates this ignored local structure from
+the included template:
 
-```markdown
-# My local preferences
-
-- Write reports in German.
-- Name the report `Review.md`.
-- After the evidence-backed report, offer to create Jira tickets.
+```text
+.video-findings/
+└── preferences.md
 ```
 
+The user does not need to edit it. Simply tell the assistant, for example,
+“Remember for this project that reports should be in German and named
+`Review.md`.” The assistant can save that choice after confirmation.
+
 The entire `.video-findings/` directory is ignored by Git and excluded from
-release packages, so an assistant can remember local choices without modifying
-the shared skill. Current prompts always take precedence. Do not store passwords
-or API keys there. Repository maintainers can still edit [`SKILL.md`](SKILL.md)
-to change the published default. You can also keep the standard report and pass
-it to another skill, for example to create Jira tickets or user stories in your
-team's format.
+release packages, so local choices do not modify the shared skill. Current
+prompts always take precedence. Do not store passwords or API keys there.
+Repository maintainers can still edit [`SKILL.md`](SKILL.md) to change the
+published default. You can also keep the standard report and pass it to another
+skill, for example to create Jira tickets or user stories in your team's format.
 
 ## Local First by default
 

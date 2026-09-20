@@ -8,6 +8,18 @@ description: Turn a local narrated screen recording into timestamped findings wi
 Turn the reviewer's spoken observations into a concise report with relevant
 pictures. Use the transcript to locate moments; do not audit the whole video.
 
+## Local preferences
+
+When the user asks to install or prepare this project, create
+`.video-findings/preferences.md` from
+`templates/local-preferences.example.md` if it does not exist. This is a local,
+Git-ignored setup file; tell the user where it was created, but do not require
+them to edit it. Do not overwrite an existing file.
+
+When a user states a recurring project preference, offer once to save it there.
+If they explicitly say to remember or save the preference, that is sufficient
+authorization. Never store passwords, API keys or other secrets in this file.
+
 ## Analysis model
 
 When the caller can choose a model or subagent for transcript and screenshot
@@ -29,8 +41,9 @@ ordinary report; do not create further subagents unless the user requests them.
 If `.video-findings/preferences.md` exists, read it once before starting. It may
 define recurring local choices such as report language, filename, structure or
 downstream format. The current prompt overrides local preferences. Do not edit
-tracked repository files to save a machine- or user-specific choice, and do not
-create or change the preferences file unless the user asks.
+tracked repository files to save a machine- or user-specific choice. Apart from
+creating the template-backed file during initial setup, change saved preferences
+only when the user asks or confirms the offered change.
 
 Run the prepared local workflow once:
 

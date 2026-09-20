@@ -7,6 +7,9 @@ This repository turns narrated screen recordings into reviewable findings.
 - If `.video-findings/preferences.md` exists, read it once before the run.
   Current user instructions override it. Keep machine- and user-specific
   preferences in this ignored directory instead of editing tracked files.
+- During an installation or initial project setup, copy
+  `templates/local-preferences.example.md` there if the local preferences file
+  is absent. Never overwrite it or store secrets in it.
 - Keep media scripts local-first, deterministic and dependency-light. Preserve
   every transcript cue in readable Markdown and machine-readable JSON.
 - Never turn model inference into observed fact or invent product context,
