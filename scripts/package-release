@@ -9,8 +9,25 @@ dist_dir="$project_dir/dist"
 staging_root=$(mktemp -d "${TMPDIR:-/tmp}/video-findings-package.XXXXXX")
 trap 'rm -rf "$staging_root"' EXIT
 package_dir="$staging_root/$package_name"
+skill_dir="$staging_root/video-findings"
 
-mkdir -p "$dist_dir" "$package_dir"
+mkdir -p "$dist_dir" "$package_dir" "$skill_dir"
+
+write_sha256() {
+  local source_path=$1
+  local source_dir
+  local source_name
+  source_dir=$(dirname "$source_path")
+  source_name=$(basename "$source_path")
+  if command -v shasum >/dev/null 2>&1; then
+    (cd "$source_dir" && shasum -a 256 "$source_name") > "$source_path.sha256"
+  elif command -v sha256sum >/dev/null 2>&1; then
+    (cd "$source_dir" && sha256sum "$source_name") > "$source_path.sha256"
+  else
+    echo "shasum or sha256sum is required to build checksums" >&2
+    exit 1
+  fi
+}
 
 rsync -a \
   --exclude '.git' \
@@ -33,6 +50,39 @@ touch "$package_dir/input/.gitkeep" \
 
 archive="$dist_dir/$package_name.tar.gz"
 tar -czf "$archive" -C "$staging_root" "$package_name"
-shasum -a 256 "$archive" > "$archive.sha256"
+write_sha256 "$archive"
+
+# Build a compact Agent Skills archive. The folder inside the ZIP must match
+# `name: video-findings` in SKILL.md even though the archive filename is
+# versioned. Human-facing README media and development fixtures stay in the
+# repository and legacy source tarball rather than the installable skill.
+for path in SKILL.md LICENSE VERSION docs keyword_profiles prompts references scripts src templates; do
+  rsync -a \
+    --exclude '__pycache__' \
+    --exclude 'package-release' \
+    "$project_dir/$path" "$skill_dir/"
+done
+mkdir -p "$skill_dir/assets" "$skill_dir/input" "$skill_dir/output" "$skill_dir/models"
+cp "$project_dir/assets/narrated-demo.mp4" "$skill_dir/assets/"
+touch "$skill_dir/input/.gitkeep" \
+  "$skill_dir/output/.gitkeep" \
+  "$skill_dir/models/.gitkeep"
+
+if ! command -v zip >/dev/null 2>&1; then
+  echo "zip is required to build the Agent Skills archive" >&2
+  exit 1
+fi
+
+skill_archive="$dist_dir/$package_name.zip"
+staged_skill_archive="$staging_root/$package_name.zip"
+(
+  cd "$staging_root"
+  zip -qry "$staged_skill_archive" video-findings
+)
+mv -f "$staged_skill_archive" "$skill_archive"
+write_sha256 "$skill_archive"
+
 printf 'Wrote %s\n' "$archive"
 printf 'Wrote %s\n' "$archive.sha256"
+printf 'Wrote %s\n' "$skill_archive"
+printf 'Wrote %s\n' "$skill_archive.sha256"

@@ -1,12 +1,23 @@
 ---
 name: video-findings
 description: Turn a local narrated screen recording into timestamped findings with relevant screenshots and a reusable transcript. Use for spoken reviews, testing sessions and think-aloud walkthroughs.
+license: MIT
 ---
 
 # Video Findings
 
 Turn the reviewer's spoken observations into a concise report with relevant
 pictures. Use the transcript to locate moments; do not audit the whole video.
+
+## Skill location
+
+Treat the directory containing this `SKILL.md` as the skill root. Resolve all
+bundled scripts, references and templates from that directory; never assume the
+current working directory is the skill directory. Keep recordings and generated
+output in the user's chosen project or output location, not inside a packaged or
+shared skill installation. The complete workflow requires a local coding agent
+on macOS with local file and image access, Python 3.10+, FFmpeg/FFprobe, and
+either a timestamped transcript or a configured local transcriber.
 
 ## Local preferences
 
@@ -48,7 +59,8 @@ only when the user asks or confirms the offered change.
 Run the prepared local workflow once:
 
 ```bash
-./scripts/analyze-recording --video "/path/recording.mov" --output "output/review" --keyword-profile none --no-motion-scan
+skill_root="/absolute/path/to/video-findings"
+"$skill_root/scripts/analyze-recording" --video "/path/recording.mov" --output "/path/to/output/review" --keyword-profile none --no-motion-scan
 ```
 
 Add `--transcript "/path/transcript.vtt"` when a matching VTT/SRT is supplied.
@@ -61,7 +73,7 @@ transcript. Group concrete observations into findings, merging repeats. Select
 timestamps around those observations and extract frames with:
 
 ```bash
-./scripts/extract-frame "/path/recording.mov" 25.5 "output/review/material/finding-001.jpg"
+"$skill_root/scripts/extract-frame" "/path/recording.mov" 25.5 "/path/to/output/review/material/finding-001.jpg"
 ```
 
 Actually view the extracted images. Batch preparation, reading, extraction and

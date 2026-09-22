@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify tag and package version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(tr -d '[:space:]' < VERSION)
+          if [[ "v$version" != "${GITHUB_REF_NAME}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match VERSION $version" >&2
+            exit 1
+          fi
+
+      - name: Run tests
+        run: make test
+
+      - name: Build release archives
+        run: make package
+
+      - name: Prepare stable latest-download names
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(tr -d '[:space:]' < VERSION)
+          cp "dist/video-findings-$version.zip" dist/video-findings.zip
+          (cd dist && sha256sum video-findings.zip > video-findings.zip.sha256)
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(tr -d '[:space:]' < VERSION)
+          gh release create "${GITHUB_REF_NAME}" \
+            "dist/video-findings.zip" \
+            "dist/video-findings.zip.sha256" \
+            "dist/video-findings-$version.zip" \
+            "dist/video-findings-$version.zip.sha256" \
+            "dist/video-findings-$version.tar.gz" \
+            "dist/video-findings-$version.tar.gz.sha256" \
+            --title "Video Findings $version" \
+            --generate-notes

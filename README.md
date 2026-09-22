@@ -74,6 +74,29 @@ Then give it a recording:
 Turn this narrated screen recording into reviewable findings: /path/to/recording.mov
 ```
 
+### Use the same checkout across agents
+
+Keep one checkout of the repository and link that same `video-findings` folder
+into the skill directory used by each local agent. This avoids copied versions
+drifting apart:
+
+| Agent | Skill location |
+|---|---|
+| **Codex** | `~/.codex/skills/video-findings` |
+| **Claude Code** | `~/.claude/skills/video-findings` |
+| **OpenCode** | Reuse the Claude Code location above, or use `~/.config/opencode/skills/video-findings` |
+
+OpenCode discovers Claude-compatible skill locations directly. The repository
+also publishes a versioned ZIP whose internal folder is always named
+`video-findings`, so it can be installed without renaming the skill.
+**[Download the latest portable skill ZIP](https://github.com/mneuschaefer/video-findings/releases/latest/download/video-findings.zip)**
+or inspect the accompanying checksum on the
+[latest release page](https://github.com/mneuschaefer/video-findings/releases/latest).
+
+The complete local workflow requires macOS, local file and image access, Python
+3.10+, and FFmpeg/FFprobe; Claude.ai without local execution can read the
+instructions but cannot process a recording stored only on your Mac.
+
 ## What it does
 
 Video Findings is useful for anyone who regularly works through longer,
