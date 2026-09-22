@@ -93,6 +93,10 @@ OpenCode also discovers the Claude-compatible location directly. On the GitHub
 release page, ignore the automatically generated **Source code** archives unless
 you actually want the repository source rather than the installable skill.
 
+The package includes the narrated demo and its matching VTT as a reference.
+During setup, the assistant should transcribe the demo afresh and compare the
+result afterward—not use the included VTT instead of testing transcription.
+
 The complete local workflow requires macOS, local file and image access, Python
 3.10+, and FFmpeg/FFprobe; Claude.ai without local execution can read the
 instructions but cannot process a recording stored only on your Mac.

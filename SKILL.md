@@ -142,6 +142,13 @@ its source, destination and expected size, then obtain approval or offer manual
 instructions. Do not download a different model format merely because a runtime
 for an existing model is missing.
 
+When verifying installation with the bundled `assets/narrated-demo.mp4`, create
+a fresh transcript through the configured local transcriber first. Only after
+that succeeds, compare its content and timestamps with
+`examples/narrated-demo-transcript.vtt` as a plausibility reference. Never pass
+the bundled reference transcript into the setup test as a substitute for fresh
+transcription.
+
 ## Optional outputs
 
 Only when requested:

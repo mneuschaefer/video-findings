@@ -19,8 +19,9 @@ for path in SKILL.md LICENSE VERSION docs keyword_profiles prompts references sc
     --exclude 'package-release' \
     "$project_dir/$path" "$skill_dir/"
 done
-mkdir -p "$skill_dir/assets" "$skill_dir/input" "$skill_dir/output" "$skill_dir/models"
+mkdir -p "$skill_dir/assets" "$skill_dir/examples" "$skill_dir/input" "$skill_dir/output" "$skill_dir/models"
 cp "$project_dir/assets/narrated-demo.mp4" "$skill_dir/assets/"
+cp "$project_dir/examples/narrated-demo-transcript.vtt" "$skill_dir/examples/"
 touch "$skill_dir/input/.gitkeep" \
   "$skill_dir/output/.gitkeep" \
   "$skill_dir/models/.gitkeep"
