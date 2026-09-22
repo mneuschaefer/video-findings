@@ -3,59 +3,16 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd "$script_dir/.." && pwd)
-version=$(tr -d '[:space:]' < "$project_dir/VERSION")
-package_name="video-findings-$version"
 dist_dir="$project_dir/dist"
 staging_root=$(mktemp -d "${TMPDIR:-/tmp}/video-findings-package.XXXXXX")
 trap 'rm -rf "$staging_root"' EXIT
-package_dir="$staging_root/$package_name"
 skill_dir="$staging_root/video-findings"
 
-mkdir -p "$dist_dir" "$package_dir" "$skill_dir"
+mkdir -p "$dist_dir" "$skill_dir"
 
-write_sha256() {
-  local source_path=$1
-  local source_dir
-  local source_name
-  source_dir=$(dirname "$source_path")
-  source_name=$(basename "$source_path")
-  if command -v shasum >/dev/null 2>&1; then
-    (cd "$source_dir" && shasum -a 256 "$source_name") > "$source_path.sha256"
-  elif command -v sha256sum >/dev/null 2>&1; then
-    (cd "$source_dir" && sha256sum "$source_name") > "$source_path.sha256"
-  else
-    echo "shasum or sha256sum is required to build checksums" >&2
-    exit 1
-  fi
-}
-
-rsync -a \
-  --exclude '.git' \
-  --exclude '__pycache__' \
-  --exclude 'dist' \
-  --exclude 'examples/generated' \
-  --exclude '.video-findings' \
-  --exclude 'input/*' \
-  --exclude 'output/*' \
-  --exclude 'models/*.bin' \
-  --exclude 'models/.force-cpu' \
-  --exclude 'models/transcriber-path' \
-  --exclude 'models/FluidAudio-runtime' \
-  --exclude 'validation' \
-  "$project_dir/" "$package_dir/"
-
-touch "$package_dir/input/.gitkeep" \
-  "$package_dir/output/.gitkeep" \
-  "$package_dir/models/.gitkeep"
-
-archive="$dist_dir/$package_name.tar.gz"
-tar -czf "$archive" -C "$staging_root" "$package_name"
-write_sha256 "$archive"
-
-# Build a compact Agent Skills archive. The folder inside the ZIP must match
-# `name: video-findings` in SKILL.md even though the archive filename is
-# versioned. Human-facing README media and development fixtures stay in the
-# repository and legacy source tarball rather than the installable skill.
+# Build the single portable Agent Skills download. The folder inside the ZIP
+# matches `name: video-findings` in SKILL.md. Human-facing README media and
+# development fixtures stay in the repository rather than the skill package.
 for path in SKILL.md LICENSE VERSION docs keyword_profiles prompts references scripts src templates; do
   rsync -a \
     --exclude '__pycache__' \
@@ -73,16 +30,12 @@ if ! command -v zip >/dev/null 2>&1; then
   exit 1
 fi
 
-skill_archive="$dist_dir/$package_name.zip"
-staged_skill_archive="$staging_root/$package_name.zip"
+skill_archive="$dist_dir/video-findings.zip"
+staged_skill_archive="$staging_root/video-findings.zip"
 (
   cd "$staging_root"
   zip -qry "$staged_skill_archive" video-findings
 )
 mv -f "$staged_skill_archive" "$skill_archive"
-write_sha256 "$skill_archive"
 
-printf 'Wrote %s\n' "$archive"
-printf 'Wrote %s\n' "$archive.sha256"
 printf 'Wrote %s\n' "$skill_archive"
-printf 'Wrote %s\n' "$skill_archive.sha256"

@@ -62,10 +62,13 @@ explains how that workflow stays fast, local-first, and adaptable.
 
 ## Install with your AI assistant
 
-Copy this into Codex, Claude Code, or another coding assistant:
+There is **one installation package for every supported local agent**:
+**[download `video-findings.zip`](https://github.com/mneuschaefer/video-findings/releases/latest/download/video-findings.zip)**.
+
+Copy this into Codex, Claude Code, or OpenCode:
 
 ```text
-Install Video Findings from https://github.com/mneuschaefer/video-findings on this Mac. Read SKILL.md first, create the ignored local preferences file from the included template, show me the read-only setup plan, reuse compatible local transcription tools and models, ask before installing or downloading anything, keep my recordings local, and verify the setup with the included demo.
+Install the portable Video Findings skill from https://github.com/mneuschaefer/video-findings/releases/latest/download/video-findings.zip in this agent's standard skill directory. Read SKILL.md first, create the ignored local preferences file from the included template, show me the read-only setup plan, reuse compatible local transcription tools and models, ask before installing or downloading anything, keep my recordings local, and verify the setup with the included demo.
 ```
 
 Then give it a recording:
@@ -74,24 +77,21 @@ Then give it a recording:
 Turn this narrated screen recording into reviewable findings: /path/to/recording.mov
 ```
 
-### Use the same checkout across agents
+### Where each agent loads it
 
-Keep one checkout of the repository and link that same `video-findings` folder
-into the skill directory used by each local agent. This avoids copied versions
-drifting apart:
+Extract the ZIP once. It contains one folder named `video-findings`. Place that
+folder in the location for your agent:
 
 | Agent | Skill location |
 |---|---|
 | **Codex** | `~/.codex/skills/video-findings` |
 | **Claude Code** | `~/.claude/skills/video-findings` |
-| **OpenCode** | Reuse the Claude Code location above, or use `~/.config/opencode/skills/video-findings` |
+| **OpenCode** | `~/.config/opencode/skills/video-findings`, or reuse the Claude Code location |
 
-OpenCode discovers Claude-compatible skill locations directly. The repository
-also publishes a versioned ZIP whose internal folder is always named
-`video-findings`, so it can be installed without renaming the skill.
-**[Download the latest portable skill ZIP](https://github.com/mneuschaefer/video-findings/releases/latest/download/video-findings.zip)**
-or inspect the accompanying checksum on the
-[latest release page](https://github.com/mneuschaefer/video-findings/releases/latest).
+The same ZIP covers all three harnesses; only the installation directory differs.
+OpenCode also discovers the Claude-compatible location directly. On the GitHub
+release page, ignore the automatically generated **Source code** archives unless
+you actually want the repository source rather than the installable skill.
 
 The complete local workflow requires macOS, local file and image access, Python
 3.10+, and FFmpeg/FFprobe; Claude.ai without local execution can read the

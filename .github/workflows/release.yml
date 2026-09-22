@@ -29,16 +29,8 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Build release archives
+      - name: Build portable skill
         run: make package
-
-      - name: Prepare stable latest-download names
-        shell: bash
-        run: |
-          set -euo pipefail
-          version=$(tr -d '[:space:]' < VERSION)
-          cp "dist/video-findings-$version.zip" dist/video-findings.zip
-          (cd dist && shasum -a 256 video-findings.zip > video-findings.zip.sha256)
 
       - name: Publish GitHub release
         env:
@@ -47,12 +39,16 @@ jobs:
         run: |
           set -euo pipefail
           version=$(tr -d '[:space:]' < VERSION)
+          cat > release-notes.md <<'EOF'
+          ## Install
+
+          Download **`video-findings.zip`** for Codex, Claude Code, or OpenCode.
+          It is the complete portable Agent Skill for every supported local harness.
+
+          GitHub adds the two **Source code** archives automatically. They are repository
+          snapshots, not the recommended skill download.
+          EOF
           gh release create "${GITHUB_REF_NAME}" \
             "dist/video-findings.zip" \
-            "dist/video-findings.zip.sha256" \
-            "dist/video-findings-$version.zip" \
-            "dist/video-findings-$version.zip.sha256" \
-            "dist/video-findings-$version.tar.gz" \
-            "dist/video-findings-$version.tar.gz.sha256" \
             --title "Video Findings $version" \
-            --generate-notes
+            --notes-file release-notes.md
