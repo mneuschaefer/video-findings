@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
 
     steps:
       - name: Check out repository
@@ -38,7 +38,7 @@ jobs:
           set -euo pipefail
           version=$(tr -d '[:space:]' < VERSION)
           cp "dist/video-findings-$version.zip" dist/video-findings.zip
-          (cd dist && sha256sum video-findings.zip > video-findings.zip.sha256)
+          (cd dist && shasum -a 256 video-findings.zip > video-findings.zip.sha256)
 
       - name: Publish GitHub release
         env:
