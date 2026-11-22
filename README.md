@@ -7,7 +7,7 @@ Record a product, website, prototype, design, or test session and talk through
 what you notice. Video Findings turns the recording into a draft you can
 review, refine, and reuse—without somebody watching the whole session again.
 
-[![Video Findings: a narrated filmstrip becomes timestamped transcript moments and structured findings](assets/video-findings-hero-v4-1280.webp)](assets/video-findings-hero-v4.png)
+[![Video Findings: screen recording → transcript → findings](assets/video-findings-hero-v5-1280.webp)](assets/video-findings-hero-v5.png)
 
 ## See it in action
 
