@@ -13,7 +13,7 @@ review, refine, and reuse—without somebody watching the whole session again.
 
 ### 1. Record a narrated walkthrough
 
-https://github.com/user-attachments/assets/df74c348-f89e-4cf4-a86f-38334dfb3471
+https://github.com/user-attachments/assets/1b59c607-a23d-42a0-bfca-8a3baea3d7ee
 
 *Voices by [ElevenLabs](https://elevenlabs.io) ([Eliza](https://elevenlabs.io/app/voice-library?voiceId=ut2XM2wJyIZLTtW6lFzZ), [Tom](https://elevenlabs.io/app/voice-library?voiceId=U4Y0Z2HmYcQYMkJB8hrg)).*
 
