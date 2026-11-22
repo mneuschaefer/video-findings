@@ -13,14 +13,14 @@ review, refine, and reuse—without somebody watching the whole session again.
 
 ### 1. Record a narrated walkthrough
 
-[![Watch the Video Findings demo](assets/narrated-demo-preview.png)](https://github.com/mneuschaefer/video-findings/blob/main/assets/narrated-demo.mp4)
+https://github.com/user-attachments/assets/df74c348-f89e-4cf4-a86f-38334dfb3471
+
+*Voices by [ElevenLabs](https://elevenlabs.io) ([Eliza](https://elevenlabs.io/app/voice-library?voiceId=ut2XM2wJyIZLTtW6lFzZ), [Tom](https://elevenlabs.io/app/voice-library?voiceId=U4Y0Z2HmYcQYMkJB8hrg)).*
 
 Watch the **64-second demo**: an experienced reviewer tests a checkout, reports
 two issues, and calls out something that works. His observations become neutral
 notes with selected screenshots. The workflow can run entirely with local AI;
 the output can be configured for tickets, user stories, or other formats.
-
-*Illustrative demo. Narrator: Eliza; reviewer: Tom. Voices generated with ElevenLabs.*
 
 ### 2. Turn the narration into a local timestamped index
 
