@@ -1,59 +1,45 @@
-# Full timestamped transcript
+# Full demo transcript
 
-**Source:** transcript.vtt  
-**Generated:** 2026-09-17T11:24:43.992833+00:00  
-**Coverage:** Every timestamped cue from the source transcript
+**Source:** [Video Findings demo](../assets/narrated-demo.mp4)
+**Voices:** Eliza (narrator), Tom (reviewer), generated with ElevenLabs.
+**Scope:** Complete scripted demo. The example report uses the three reviewer observations; the surrounding narration explains the workflow.
 
-This transcript is the reusable source for reports and other derived artifacts. It preserves the source language and does not add product context.
+**00:00.000–00:02.461 · Narrator (Eliza)**
 
-**00:00:01.680–00:00:04.160**
+This is an example of the Video Findings Skill.
 
-This is a short review of the checkout screen.
+**00:03.461–00:07.687 · Narrator (Eliza)**
 
-**00:00:04.160–00:00:07.520**
+A team has built a new app version. An experienced reviewer is testing it.
 
-The order summary and the available delivery options are visible, and the
+**00:07.837–00:17.868 · Reviewer (Tom)**
 
-**00:00:07.520–00:00:09.600**
+Standard delivery. Continue. Nothing. Once more. Come on, you blasted button! Take me to the next step, or tell me what's wrong!
 
-layout looks normal at first.
+**00:18.018–00:25.124 · Reviewer (Tom)**
 
-**00:00:22.720–00:00:25.760**
+That discount message is covering the total. Lovely! Now I have to peek around it to see what I'm paying.
 
-I select standard delivery and press continue.
+**00:25.274–00:31.543 · Reviewer (Tom)**
 
-**00:00:25.760–00:00:26.880**
+At least the item prices add up now. Seventy-nine plus twenty-four: a hundred and three.
 
-Nothing happens.
+**00:31.693–00:41.260 · Narrator (Eliza)**
 
-**00:00:26.880–00:00:30.480**
+A local speech model transcribes the recording. The skill creates neutral notes with only the screenshots needed. It can run entirely with local AI.
 
-There is no visible response, so I cannot tell whether the click
+**00:41.410–00:48.097 · Narrator (Eliza)**
 
-**00:00:30.480–00:00:31.520**
+His observations become neutral findings. First: Continue gives no visible response, even after two clicks.
 
-was registered.
+**00:48.247–00:51.219 · Narrator (Eliza)**
 
-**00:00:46.720–00:00:48.480**
+Second: the discount message partially covers the total.
 
-I try continue again.
+**00:51.369–00:58.660 · Narrator (Eliza)**
 
-**00:00:48.480–00:00:50.160**
+Third: the item prices add up correctly. The output can also be configured for tickets, user stories, or other formats.
 
-The button still does not work.
+**00:58.810–01:04.012 · Narrator (Eliza)**
 
-**00:00:50.160–00:00:53.360**
-
-I would expect either the next step or a clear error message.
-
-**00:01:08.720–00:01:11.120**
-
-There is another issue in the order summary.
-
-**00:01:11.120–00:01:15.280**
-
-The discount message overlaps the total, which makes the final amount difficult
-
-**00:01:15.280–00:01:18.560**
-
-to read.
+Find Video Findings on GitHub. Record, review, and turn your observations into clear notes.

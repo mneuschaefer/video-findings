@@ -1,40 +1,31 @@
 WEBVTT
 
-00:00:01.680 --> 00:00:04.160
-This is a short review of the checkout screen.
+00:00:00.000 --> 00:00:02.461
+This is an example of the Video Findings Skill.
 
-00:00:04.160 --> 00:00:07.520
-The order summary and the available delivery options are visible, and the
+00:00:03.461 --> 00:00:07.687
+A team has built a new app version. An experienced reviewer is testing it.
 
-00:00:07.520 --> 00:00:09.600
-layout looks normal at first.
+00:00:07.837 --> 00:00:17.868
+Standard delivery. Continue. Nothing. Once more. Come on, you blasted button! Take me to the next step, or tell me what's wrong!
 
-00:00:22.720 --> 00:00:25.760
-I select standard delivery and press continue.
+00:00:18.018 --> 00:00:25.124
+That discount message is covering the total. Lovely! Now I have to peek around it to see what I'm paying.
 
-00:00:25.760 --> 00:00:26.880
-Nothing happens.
+00:00:25.274 --> 00:00:31.543
+At least the item prices add up now. Seventy-nine plus twenty-four: a hundred and three.
 
-00:00:26.880 --> 00:00:30.480
-There is no visible response, so I cannot tell whether the click
+00:00:31.693 --> 00:00:41.260
+A local speech model transcribes the recording. The skill creates neutral notes with only the screenshots needed. It can run entirely with local AI.
 
-00:00:30.480 --> 00:00:31.520
-was registered.
+00:00:41.410 --> 00:00:48.097
+His observations become neutral findings. First: Continue gives no visible response, even after two clicks.
 
-00:00:46.720 --> 00:00:48.480
-I try continue again.
+00:00:48.247 --> 00:00:51.219
+Second: the discount message partially covers the total.
 
-00:00:48.480 --> 00:00:50.160
-The button still does not work.
+00:00:51.369 --> 00:00:58.660
+Third: the item prices add up correctly. The output can also be configured for tickets, user stories, or other formats.
 
-00:00:50.160 --> 00:00:53.360
-I would expect either the next step or a clear error message.
-
-00:01:08.720 --> 00:01:11.120
-There is another issue in the order summary.
-
-00:01:11.120 --> 00:01:15.280
-The discount message overlaps the total, which makes the final amount difficult
-
-00:01:15.280 --> 00:01:18.560
-to read.
+00:00:58.810 --> 00:01:04.012
+Find Video Findings on GitHub. Record, review, and turn your observations into clear notes.

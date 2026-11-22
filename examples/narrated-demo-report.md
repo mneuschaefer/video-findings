@@ -1,30 +1,37 @@
 # Checkout review findings
 
-**Source video:** [Narrated checkout review](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)
+**Source video:** [Video Findings demo](../assets/narrated-demo.mp4)
 
 **Complete transcript:** [narrated-demo-transcript.md](narrated-demo-transcript.md)
 
-## 00:22.720 — Continue provides no visible response
+The report below captures only the reviewer’s three spoken observations in this illustrative demo. The narrator introduces the workflow and presents the output.
 
-The reviewer selects `Standard delivery` and presses `Continue`. They report
-that nothing happens and there is no visible response, so they cannot tell
-whether the click was registered. A second attempt produces the same result.
-They expect either the next step or a clear error message.
+## 00:07.837 — Continue gives no visible response
 
-![Checkout after the reported Continue action](assets/continue-no-response.jpg)
+The reviewer selects Standard delivery and reports no response after two clicks on Continue. He expects the next step or an error explaining what needs attention.
 
-*Evidence · 00:27.120 — Continue after the reported first attempt.*
+![Continue after the reported second attempt.](assets/continue-no-response.jpg)
 
-## 01:08.720 — Discount message overlaps the order total
+*Evidence · 00:12.400 — Continue after the reported second attempt.*
 
-The reviewer reports that the discount message overlaps the total, making the
-final amount difficult to read.
+This image locates the reported issue; one still cannot show both click attempts.
 
-![The discount confirmation overlaps the total](assets/discount-overlap.jpg)
+## 00:18.018 — Discount message overlaps the total
 
-*Evidence · 01:13.640 — Discount message at the reported overlap.*
+The reviewer reports that the discount message partially covers the total, making the amount awkward to read.
+
+![Discount message partially overlapping the Total row.](assets/discount-overlap.jpg)
+
+*Evidence · 00:20.500 — Discount message partially overlapping the Total row.*
+
+## 00:25.274 — Item prices add up correctly
+
+The reviewer confirms that the item prices add up: $79 + $24 = $103.
+
+![Item prices and the partially visible $103 total.](assets/correct-item-sum.jpg)
+
+*Evidence · 00:28.000 — Item prices and the partially visible $103 total.*
 
 ## Source material
 
-[Open the complete timestamped transcript](narrated-demo-transcript.md) or the
-[source VTT](narrated-demo-transcript.vtt).
+[Complete timestamped transcript](narrated-demo-transcript.md) · [VTT](narrated-demo-transcript.vtt)

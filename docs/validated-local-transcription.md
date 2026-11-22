@@ -1,5 +1,9 @@
 # Validated local transcription — 2026-09-20
 
+These measurements used the earlier 82-second demo. The current demo and its
+matching transcript were replaced on 2026-11-22; the measurements below remain
+a historical validation of the local transcriber.
+
 Host: Apple M4, macOS, Swift 6.3.3. Runtime: standalone FluidAudio v0.15.8
 (commit `87a39dfe4068fef0f1c69bfe704b2b3ef4fbc5bc`). Model: already installed
 Parakeet TDT v3 CoreML bundle, including `JointDecisionv3.mlmodelc`.

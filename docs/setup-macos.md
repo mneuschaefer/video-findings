@@ -5,7 +5,7 @@
 ### Existing FluidAudio CoreML models
 
 This path has been [validated locally on an Apple M4](validated-local-transcription.md)
-with the 82-second English demo and a short German speech sample.
+with an earlier English demo and a short German speech sample.
 
 If compatible Parakeet CoreML models already exist, reuse them with the standalone
 FluidAudio CLI. Do not install MLX-format weights just because a CLI is missing.

@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "source_video": "https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157",
+  "source_video": "../assets/narrated-demo.mp4",
   "transcript": "narrated-demo-transcript.md",
   "transcript_language": "English",
   "report_language": "English",
@@ -8,66 +8,80 @@
   "findings": [
     {
       "id": "finding-001",
-      "title": "Continue provides no visible response",
+      "title": "Continue gives no visible response",
       "evidence_need": "dynamic",
       "dynamic_mode": "interaction",
       "time_ranges": [
-        {"start": 22.72, "end": 31.52},
-        {"start": 46.72, "end": 53.36}
+        {
+          "start": 7.837,
+          "end": 17.868
+        }
       ],
-      "reported_issue": "The reviewer says that pressing Continue produces no visible response and that a second attempt also does not work.",
-      "detailed_description": "The reviewer reports that Continue produces no visible response in two separate attempts. The sampled states remain on checkout step 2 of 3 with standard delivery selected and no visible error or next-step state. Because the recording has no visible click indicator, the evidence supports the unchanged interface state but cannot establish whether the input event was registered.",
-      "visible_state": "Checkout remains on step 2 of 3 with standard delivery selected, Continue visible, and no error or next-step state.",
-      "reviewer_intent": "The reviewer expects either the next step or a clear error message.",
-      "observation": "The checkout remains on step 2 of 3 in both sampled states. The recording has no visible click indicator.",
-      "reviewer_expectation": "Either the next step or a clear error message.",
+      "reported_issue": "The reviewer selects Standard delivery and reports no response after two clicks on Continue. He expects the next step or an error explaining what needs attention.",
+      "detailed_description": "The reviewer selects Standard delivery and reports no response after two clicks on Continue. He expects the next step or an error explaining what needs attention.",
+      "visible_state": "Continue after the reported second attempt.",
+      "reviewer_intent": "Proceed or receive an explanation.",
       "transcript_evidence": [
-        "00:22.720–00:31.520: I select standard delivery and press continue. Nothing happens. There is no visible response, so I cannot tell whether the click was registered.",
-        "00:46.720–00:53.360: I try continue again. The button still does not work. I would expect either the next step or a clear error message."
+        "00:07.837\u201300:17.868: Standard delivery. Continue. Nothing. Once more. Come on, you blasted button! Take me to the next step, or tell me what's wrong!"
       ],
-      "unknown_context": [
-        "Whether the input event was registered",
-        "The intended checkout navigation",
-        "The root cause"
-      ],
-      "uncertainty_notes": [
-        "The recording has no visible click indicator, so it cannot establish whether the input event was registered."
-      ],
-      "interpretation": "Possible interaction-feedback or checkout-navigation failure.",
+      "unknown_context": [],
+      "uncertainty_notes": [],
       "representative_image": "assets/continue-no-response.jpg",
-      "image_timestamp": 27.12,
-      "image_caption": "Checkout remains on step 2 of 3 with standard delivery selected and Continue still visible.",
-      "original_video_timestamp": 22.72,
+      "image_timestamp": 12.4,
+      "image_caption": "Continue after the reported second attempt.",
+      "original_video_timestamp": 7.837,
       "optional_clip": null
     },
     {
       "id": "finding-002",
-      "title": "Discount message overlaps the order total",
+      "title": "Discount message overlaps the total",
       "evidence_need": "static",
       "dynamic_mode": null,
       "time_ranges": [
-        {"start": 68.72, "end": 78.56}
+        {
+          "start": 18.018,
+          "end": 25.124
+        }
       ],
-      "reported_issue": "The reviewer says that the discount message overlaps the total and makes the final amount difficult to read.",
-      "detailed_description": "The discount confirmation is rendered across the Total row and visibly covers both its label and amount. This directly supports the reported readability problem, while the intended placement, duration, responsible component, and root cause remain unstated.",
-      "visible_state": "The Discount applied: SAVE10 message covers the Total label and amount.",
-      "reviewer_intent": "The reviewer wants the final amount to remain readable.",
-      "observation": "The Discount applied: SAVE10 message visibly covers the total label and amount.",
-      "reviewer_expectation": "The final amount should remain readable.",
+      "reported_issue": "The reviewer reports that the discount message partially covers the total, making the amount awkward to read.",
+      "detailed_description": "The reviewer reports that the discount message partially covers the total, making the amount awkward to read.",
+      "visible_state": "Discount message partially overlapping the Total row.",
+      "reviewer_intent": "Read the order total.",
       "transcript_evidence": [
-        "01:08.720–01:18.560: There is another issue in the order summary. The discount message overlaps the total, which makes the final amount difficult to read."
+        "00:18.018\u201300:25.124: That discount message is covering the total. Lovely! Now I have to peek around it to see what I'm paying."
       ],
-      "unknown_context": [
-        "The intended placement or duration of the discount message",
-        "The responsible component",
-        "The root cause"
-      ],
+      "unknown_context": [],
       "uncertainty_notes": [],
-      "interpretation": "Layout and readability defect in the order summary.",
       "representative_image": "assets/discount-overlap.jpg",
-      "image_timestamp": 73.64,
-      "image_caption": "The Discount applied: SAVE10 confirmation covers the Total label and final amount.",
-      "original_video_timestamp": 68.72,
+      "image_timestamp": 20.5,
+      "image_caption": "Discount message partially overlapping the Total row.",
+      "original_video_timestamp": 18.018,
+      "optional_clip": null
+    },
+    {
+      "id": "finding-003",
+      "title": "Item prices add up correctly",
+      "evidence_need": "static",
+      "dynamic_mode": null,
+      "time_ranges": [
+        {
+          "start": 25.274,
+          "end": 31.543
+        }
+      ],
+      "reported_issue": "The reviewer confirms that the item prices add up: $79 + $24 = $103.",
+      "detailed_description": "The reviewer confirms that the item prices add up: $79 + $24 = $103.",
+      "visible_state": "Item prices and the partially visible $103 total.",
+      "reviewer_intent": "Check the addition of item prices.",
+      "transcript_evidence": [
+        "00:25.274\u201300:31.543: At least the item prices add up now. Seventy-nine plus twenty-four: a hundred and three."
+      ],
+      "unknown_context": [],
+      "uncertainty_notes": [],
+      "representative_image": "assets/correct-item-sum.jpg",
+      "image_timestamp": 28,
+      "image_caption": "Item prices and the partially visible $103 total.",
+      "original_video_timestamp": 25.274,
       "optional_clip": null
     }
   ],

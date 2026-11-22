@@ -13,45 +13,44 @@ review, refine, and reuse—without somebody watching the whole session again.
 
 ### 1. Record a narrated walkthrough
 
-[![Watch the narrated Video Findings demo](assets/narrated-demo-preview.png)](https://github.com/user-attachments/assets/0862c1c1-45d2-4232-92ac-67865d407157)
+[![Watch the Video Findings demo](assets/narrated-demo-preview.png)](https://github.com/mneuschaefer/video-findings/blob/main/assets/narrated-demo.mp4)
 
-Open the 82-second demo to hear the reviewer talk through a checkout while using
-it naturally.
+Watch the **64-second demo**: an experienced reviewer tests a checkout, reports
+two issues, and calls out something that works. His observations become neutral
+notes with selected screenshots. The workflow can run entirely with local AI;
+the output can be configured for tickets, user stories, or other formats.
+
+*Illustrative demo. Narrator: Eliza; reviewer: Tom. Voices generated with ElevenLabs.*
 
 ### 2. Turn the narration into a local timestamped index
 
-The recording is transcribed locally. Relevant cues include:
+The recording is transcribed locally. One reviewer observation is:
 
 ```text
-00:00:22.720–00:00:25.760
-I select standard delivery and press continue.
-
-00:00:25.760–00:00:31.520
-Nothing happens. There is no visible response, so I cannot tell whether
-the click was registered.
+00:07.837–00:17.868
+Standard delivery. Continue. Nothing. Once more. Come on, you blasted button!
+Take me to the next step, or tell me what's wrong!
 ```
 
 The timestamps identify where visual evidence is worth inspecting.
-[Open the complete transcript](examples/narrated-demo-transcript.md).
+[Open the complete transcript](examples/narrated-demo-transcript.md), including
+the narrator's introduction and explanation of the workflow.
 
 ### 3. Produce the reviewable report
 
-Video Findings turns those moments into a compact report that can be reviewed
-or used as the basis for tickets:
+The reviewer's three observations become neutral notes:
 
 ```text
-00:22.720 — Continue provides no visible response
-The reviewer selects standard delivery and presses Continue. They report no
-visible response on two attempts and expect either the next step or a clear
-error message.
+00:07.837 — Continue gives no visible response
+After two clicks, the reviewer sees no response. He expects the next step
+or an error explaining what needs attention.
 
-🖼️ Embedded screenshot from the relevant moment · 00:27.120
+00:18.018 — Discount message overlaps the total
+The reviewer reports that the discount message partially covers the total,
+making the amount awkward to read.
 
-01:08.720 — Discount message overlaps the order total
-The reviewer reports that the discount message overlaps the total, making the
-final amount difficult to read.
-
-🖼️ Embedded screenshot from the relevant moment · 01:13.640
+00:25.274 — Item prices add up correctly
+The reviewer confirms that the item prices add up: $79 + $24 = $103.
 ```
 
 Every finding includes its selected screenshot directly in the report and links
